@@ -1,0 +1,8 @@
+#!name=喜马拉雅VIP
+#!desc=喜马拉雅YVIP
+
+[Script]
+XMLYVIP = type=http-request, pattern=^https:\/\/mobile\.ximalaya\.com\/mobile-playpage\/(?:track\/v4\/baseInfo|playpage\/recommendContentV2|playpage\/tabs\/v2), script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/XMLYVIP.js, timeout=60
+
+[MITM]
+hostname = %APPEND% mobile.ximalaya.com, 101.91.13*
