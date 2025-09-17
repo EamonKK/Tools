@@ -1,0 +1,35 @@
+#!name=彩云天气
+#!desc=彩云天气旧版
+#!icon=https://github.com/Toperlock/Quantumult/raw/main/icon/Doraemon/Doraemon-1023.png
+
+[Rule]
+# 上传信息
+DOMAIN,gather.colorfulclouds.net,REJECT
+
+[Rewrite]
+# 普通版开屏广告(此广告不定时出现)
+^https:\/\/ad\.cyapi\.cn\/v2\/req\?app_name=weather - reject-dict
+# 7.1.9 限时福利Svip
+^https:\/\/biz\.cyapi\.cn\/p\/v1\/trial_card\/info - reject-dict
+# 7.2.0普通版修改VIP后提示账号迁移
+^https:\/\/biz\.cyapi\.cn\/api\/v1\/token\/device$ - reject-dict
+# 亲友卡
+^https:\/\/biz\.cyapi\.cn\/p\/v1\/entries - reject-dict
+# 左上角+进去推荐
+^https:\/\/starplucker\.cyapi\.cn\/v3\/config$ - reject-dict
+
+[Script]
+# 赏叶赏花模块
+http-response ^https:\/\/wrapper\.cyapi\.cn\/v1\/activity\?app_name=weather script-path=https://raw.githubusercontent.com/wf021325/qx/master/js/caiyun.js, requires-body=true, timeout=60, tag=caiyun
+
+# 解锁旧版vip(7.20.0之前)
+http-response ^https:\/\/biz\.cyapi\.cn\/v2\/user script-path=https://raw.githubusercontent.com/wf021325/qx/master/js/caiyun.js, requires-body=true, timeout=60, tag=caiyun
+
+# 卫星云图 48小时预报
+http-request ^https:\/\/wrapper\.cyapi\.cn\/v1\/(satellite|nafp\/origin_images) script-path=https://raw.githubusercontent.com/wf021325/qx/master/js/caiyun.js, timeout=60, tag=caiyun
+
+# 7.20.0版本显示VIP
+http-response ^https?:\/\/biz\.cyapi\.cn\/api\/v1\/user_detail$ script-path=https://raw.githubusercontent.com/wf021325/qx/master/js/caiyun.js, requires-body=true, timeout=60, tag=caiyun
+
+[MITM]
+hostname = *.cyapi.cn
