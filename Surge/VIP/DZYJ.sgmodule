@@ -1,0 +1,10 @@
+#!name=地震预警
+#!desc=地震预警
+
+[Script]
+dzyj = type=http-response, pattern=^https?:\/\/mobile-new\.chinaeew\.cn\/v\d\/order\/apple\/vip, script-path=https://raw.githubusercontent.com/chxm1023/Rewrite/main/dzyj.js, requires-body=true, max-size=-1, timeout=60
+
+[MITM]
+hostname = %APPEND% mobile-new.chinaeew.cn
+
+
