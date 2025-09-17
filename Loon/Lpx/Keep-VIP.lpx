@@ -1,0 +1,10 @@
+#!name=keep会员
+#!desc=keep会员
+#!icon=https://raw.githubusercontent.com/lige47/QuanX-icon-rule/main/icon/keep.png
+
+[Script]
+# >keep 课程预览 直播课。会员付费课跟练 会员训练计划
+http-response ^https?:\/\/(api|kit).gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\/ script-path=https://raw.githubusercontent.com/WeiGiegie/666/main/keep.js, requires-body=true, timeout=60, tag=keep
+
+[MITM]
+hostname = *keep*, 162.14.5.*, 42.187.199.*, 101.42.124.*
