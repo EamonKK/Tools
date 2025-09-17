@@ -1,0 +1,9 @@
+#!name=录屏会员
+#!desc=录屏神器
+
+[Script]
+# >录屏-屏幕录制神器（永久会员）
+luping = type=http-response, pattern=^https?:\/\/sc.szsszykj.com\/api\/GetIosVip.php, script-path=https://raw.githubusercontent.com/WeiGiegie/666/main/luping.js, requires-body=true, max-size=-1, timeout=60
+
+[MITM]
+hostname = %APPEND% sc.szsszykj.com
