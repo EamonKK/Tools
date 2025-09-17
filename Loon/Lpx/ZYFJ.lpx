@@ -1,0 +1,10 @@
+#!name=中医方剂
+#!desc=中医方剂
+#!icon=https://github.com/Toperlock/Quantumult/raw/main/icon/Doraemon/Doraemon-1079.png
+
+[Script]
+# >中医方剂（解锁会员）
+http-response ^https?:\/\/medicine-books.meappstore.top\/medicineModule\/api\/users\/iosUserLogin script-path=https://raw.githubusercontent.com/WeiGiegie/666/main/zyfj.js, requires-body=true, timeout=60, tag=zyfj
+
+[MITM]
+hostname = medicine-books.meappstore.top
