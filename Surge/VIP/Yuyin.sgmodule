@@ -1,0 +1,12 @@
+#!name=语音合成助手会员解锁
+#!desc=语音合成助手会员解锁
+
+[Script]
+crack = type=http-response, pattern=^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/.+$), script-path=https://raw.githubusercontent.com/afengye/QX/main/crack.js, requires-body=true, max-size=-1, timeout=60
+
+crack = type=http-request, pattern=^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/.+$), script-path=https://raw.githubusercontent.com/afengye/QX/main/crack.js, timeout=60
+
+[MITM]
+hostname = %APPEND% api.revenuecat.com, api.rc-backup.com
+
+
