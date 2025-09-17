@@ -1,0 +1,11 @@
+#!name=中医方剂
+#!desc=中医方剂（解锁会员）
+
+[Script]
+# >中医方剂（解锁会员）
+zyfj = type=http-response, pattern=^https?:\/\/medicine-books.meappstore.top\/medicineModule\/api\/users\/iosUserLogin, script-path=https://raw.githubusercontent.com/WeiGiegie/666/main/zyfj.js, requires-body=true, max-size=-1, timeout=60
+
+[MITM]
+hostname = %APPEND% medicine-books.meappstore.top
+
+
