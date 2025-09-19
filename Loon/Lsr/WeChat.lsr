@@ -5,6 +5,8 @@
 # IP-ASN: 1
 # USER-AGENT: 2
 # TOTAL: 33
+DOMAIN,dns.weixin.qq.com.cn
+DOMAIN,dns.weixin.qq.com
 DOMAIN,apd-pcdnwxlogin.teg.tencent-cloud.net
 DOMAIN,btrace.qq.com
 DOMAIN,dldir1.qq.com
