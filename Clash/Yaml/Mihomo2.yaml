@@ -133,107 +133,107 @@ rule-providers:
   Direct:
     <<: *RuleProviders
     path: './rules/Direct.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Direct.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Direct.list'
 
   Lan:
     <<: *RuleProviders
     path: './rules/Lan.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Lan.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Lan.list'
 
   AD:
     <<: *RuleProviders
     path: './rules/AD.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Reject.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Reject.list'
 
   AppleCN:
     <<: *RuleProviders
     path: './rules/AppleCN.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/AppleCN.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/AppleCN.list'
 
   AppleProxy:
     <<: *RuleProviders
     path: './rules/AppleProxy.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/AppleServers.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/AppleProxy.list'
 
   Github:
     <<: *RuleProviders
     path: './rules/Github.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Github.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Github.list'
 
   OneDrive:
     <<: *RuleProviders
     path: './rules/OneDrive.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/OneDrive.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/OneDrive.list'
 
   Microsoft:
     <<: *RuleProviders
     path: './rules/Microsoft.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Microsoft.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Microsoft.list'
 
   YouTube:
     <<: *RuleProviders
     path: './rules/YouTube.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/YouTube.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/YouTube.list'
 
   Google:
     <<: *RuleProviders
     path: './rules/Google.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Google.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Google.list'
 
   Telegram:
     <<: *RuleProviders
     path: './rules/Telegram.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Telegram.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Telegram.list'
 
   Twitter:
     <<: *RuleProviders
     path: './rules/Twitter.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Twitter.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Twitter.list'
 
   Steam:
     <<: *RuleProviders
     path: './rules/Steam.list'
-    url: 'url: https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Steam.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Steam.list'
 
   AI:
     <<: *RuleProviders
     path: './rules/AI.list'
-    url: 'https://raw.githubusercontent.com/Repcz/Tool/X/mihomo/Rules/AI.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/AI.list'
 
   Emby:
     <<: *RuleProviders
     path: './rules/Emby.list'
-    url: 'https://raw.githubusercontent.com/betraykk/Surge/refs/heads/main/Rules/Emby.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Emby.list'
 
   Spotify:
     <<: *RuleProviders
     path: './rules/Spotify.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Spotify.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Spotify.list'
 
   Proxy:
     <<: *RuleProviders
     path: './rules/Proxy.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Proxy.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/proxy.list'
 
   Netflix:
     <<: *RuleProviders
     path: './rules/Netflix.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Netflix.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Netflix.list'
 
   Disney:
     <<: *RuleProviders
     path: './rules/Disney.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/Disney.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Disney.list'
 
   TikTok:
     <<: *RuleProviders
     path: './rules/TikTok.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/TikTok.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/TikTok.list'
 
   CDN:
     <<: *RuleProviders
     path: './rules/CDN.list'
-    url: 'https://github.com/Repcz/Tool/raw/X/mihomo/Rules/CDN.list'
+    url: 'https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/CDN.list'
 
 
 # 规则指向
