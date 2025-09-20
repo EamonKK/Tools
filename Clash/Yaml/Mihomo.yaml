@@ -101,23 +101,23 @@ proxy-groups:
   - {name: 韩国节点, <<: *url-test, filter: "(?i)🇰🇷|韩国|(\b(KR|KOR|Korea)\b)", icon: https://raw.githubusercontent.com/Koolson/Qure/refs/heads/master/IconSet/Color/Taiwan.png}
   - {name: 欧洲节点, <<: *url-test, filter: "(?i)🇬🇧|🇫🇷|🇩🇪|法国|德国|英国|伦敦|(\b(UK|GBR|FR|FRA|DE|DEU|United Kingdom|France|Germany)\b)", icon: https://raw.githubusercontent.com/Koolson/Qure/refs/heads/master/IconSet/Color/Taiwan.png}
 rule-providers:
-  AD: {<<: *c, path: ./rules/AD.list, url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Reject.list}
-  Apple: {<<: *c, path: ./rules/Apple.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Apple.list}
-  YouTube: {<<: *c, path: ./rules/YouTube.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/YouTube.list}
-  Google: {<<: *c, path: ./rules/Google.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Google.list}
-  Telegram: {<<: *c, path: ./rules/Telegram.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Telegram.list}
-  Twitter: {<<: *c, path: ./rules/Twitter.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Twitter.list}
-  Steam: {<<: *c, path: ./rules/Steam.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Steam.list}
-  Epic: {<<: *c, path: ./rules/Epic.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Epic.list}
-  AI: {<<: *c, path: ./rules/AI.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/AI.list}
-  Emby: {<<: *c, path: ./rules/Emby.list,  url: https://raw.githubusercontent.com/betraykk/Surge/refs/heads/main/Rules/Emby.list}
-  Spotify: {<<: *c, path: ./rules/Spotify.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Spotify.list}
-  Bahamut: {<<: *c, path: ./rules/Bahamut.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Bahamut.list}
-  Netflix: {<<: *c, path: ./rules/Netflix.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Netflix.list}
-  Disney: {<<: *c, path: ./rules/Disney.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/Disney.list}
-  PrimeVideo: {<<: *c, path: ./rules/PrimeVideo.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/PrimeVideo.list}
-  HBO: {<<: *c, path: ./rules/HBO.list,  url: https://raw.githubusercontent.com/Repcz/Tool/refs/heads/X/Clash/Rules/TikTok.list}
-  China: {<<: *c, path: ./rules/China.list,  url: https://github.com/Repcz/Tool/raw/X/Clash/Rules/ChinaDomain.list}
+  AD: {<<: *c, path: ./rules/AD.list, url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Reject.list}
+  Apple: {<<: *c, path: ./rules/Apple.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Apple.list}
+  YouTube: {<<: *c, path: ./rules/YouTube.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/YouTube.list}
+  Google: {<<: *c, path: ./rules/Google.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Google.list}
+  Telegram: {<<: *c, path: ./rules/Telegram.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Telegram.list}
+  Twitter: {<<: *c, path: ./rules/Twitter.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Twitter.list}
+  Steam: {<<: *c, path: ./rules/Steam.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Steam.list}
+  Epic: {<<: *c, path: ./rules/Epic.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Epic.list}
+  AI: {<<: *c, path: ./rules/AI.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/AI.list}
+  Emby: {<<: *c, path: ./rules/Emby.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Emby.list}
+  Spotify: {<<: *c, path: ./rules/Spotify.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Spotify.list}
+  proxy: {<<: *c, path: ./rules/Bahamut.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/proxy.list}
+  Netflix: {<<: *c, path: ./rules/Netflix.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Netflix.list}
+  Disney: {<<: *c, path: ./rules/Disney.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/Disney.list}
+  PrimeVideo: {<<: *c, path: ./rules/PrimeVideo.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/PrimeVideo.list}
+  HBO: {<<: *c, path: ./rules/HBO.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/HBO.list}
+  China: {<<: *c, path: ./rules/China.list,  url: https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Clash/rules/ChinaDomain.list}
 
 rules:
   - RULE-SET,AD,广告拦截
@@ -131,7 +131,7 @@ rules:
   - RULE-SET,Epic,暴雪游戏
   - RULE-SET,Emby,Netflix
   - RULE-SET,Spotify,Spotify
-  - RULE-SET,Bahamut,Netflix
+  - RULE-SET,proxy,DIRECT
   - RULE-SET,Netflix,Netflix
   - RULE-SET,Disney,Netflix
   - RULE-SET,PrimeVideo,Netflix
