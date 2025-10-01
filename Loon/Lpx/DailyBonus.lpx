@@ -53,8 +53,8 @@ http-response ^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info script-path=ht
 cron {Mixue_CRONEXP} script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/Mixue.js,tag=蜜雪冰城每日签到,enable={Mixue_DailyBonus}
 
 # Soul
-http-request ^https:\/\/increase-openapi\.soulapp\.cn\/increase\/sign\/userSign script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js,timeout=60, tag=SoulCookie
-cron {Soul_CRONEXP} script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js, timeout=120,tag=Soul金币签到,enable={SoulSing_DailyBonus}
+# http-request ^https:\/\/increase-openapi\.soulapp\.cn\/increase\/sign\/userSign script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js,timeout=60, tag=SoulCookie
+# cron {Soul_CRONEXP} script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js, timeout=120,tag=Soul金币签到,enable={SoulSing_DailyBonus}
 
 # 小蚕霸王餐
 http-response ^https:\/\/gw\.xiaocantech\.com\/rpc script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw, requires-body=true, timeout=60, tag=小蚕霸王餐Cookie,enable={Xiaocan_Cookie}
