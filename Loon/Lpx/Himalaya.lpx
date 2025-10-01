@@ -1,0 +1,10 @@
+#!name=himalaya
+#!desc=himalaya
+#!icon=https://github.com/Toperlock/Quantumult/raw/main/icon/Doraemon/Doraemon-1080.png
+
+[Script]
+# > 喜马拉雅国际版VIP音频解析 + 课程授权解锁 + 页面广告清理
+http-response ^https?:\/\/.+himalaya\.com\/(himalaya-portal\/(track\/urlEncode|v1\/course)|courses\/\d+) script-path=https://raw.githubusercontent.com/WeiGiegie/666/main/himalaya.js, requires-body=true, timeout=60, tag=himalaya
+
+[MITM]
+hostname = api.himalaya.com, *.himalaya.com, apisg.himalaya.com, www.himalaya.com
