@@ -14,7 +14,7 @@ BiliBili_Cookie_QR = switch,"false","true",tag=B站扫码账号捕获,desc=使�
 BiliBili_Cookie_APP = switch,"false","true",tag=B站客户端账号捕获,desc=获取客户端Cookie
 # Dingdong_Cookie = switch,"false","true",tag=叮咚买菜账号捕获,desc=获取Cookie
 Mixue_Cookie = switch,"false","true",tag=蜜雪冰城账号捕获,desc=获取Cookie
-Soul_Cookie = switch,"false","true",tag=Soul账号捕获,desc=获取Cookie
+# Soul_Cookie = switch,"false","true",tag=Soul账号捕获,desc=获取Cookie
 Xiaocan_Cookie = switch,"false","true",tag=小蚕霸王餐账号捕获,desc=获取Cookie
 Xiaoxiao_Cookie = switch,"false","true",tag=晓晓优选账号捕获,desc=获取Cookie
 Waimai_Cookie = switch,"false","true",tag=歪麦霸王餐账号捕获,desc=获取Cookie
@@ -32,7 +32,7 @@ WechatPay_DailyBonus = switch,"false","true",tag=支付有优惠金币获取,des
 BiliBili_CRONEXP = input,"0 8 * * *",tag=B站定时参数,desc=这里需要输入符合CRON表达式的参数
 # Dingdong_CRONEXP = input,"0 9 * * *",tag=叮咚买菜定时参数,desc=这里需要输入符合CRON表达式的参数
 Mixue_CRONEXP = input,"0 10 * * *",tag=蜜雪冰城定时参数,desc=这里需要输入符合CRON表达式的参数
-Soul_CRONEXP = input,"0 11 * * *",tag=Soul定时参数,desc=这里需要输入符合CRON表达式的参数
+# Soul_CRONEXP = input,"0 11 * * *",tag=Soul定时参数,desc=这里需要输入符合CRON表达式的参数
 Xiaocan_CRONEXP = input,"0 10 * * *",tag=小蚕霸王餐定时参数,desc=这里需要输入符合CRON表达式的参数
 Xiaoxiao_CRONEXP = input,"0 10 * * *",tag=晓晓优选定时参数,desc=这里需要输入符合CRON表达式的参数
 Waimai_CRONEXP = input,"0 10 * * *",tag=歪麦霸王餐定时参数,desc=这里需要输入符合CRON表达式的参数
