@@ -1,0 +1,10 @@
+#!name=蜗牛睡眠解锁
+#!desc=蜗牛睡眠会员
+#!icon=https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/softlyx/Odyssey.png
+
+[Script]
+http-response ^https?:\/\/snailsleep\.net\/snail\/v\d\/profile\/get.+ script-path=https://raw.githubusercontent.com/chxm1023/Rewrite/main/woniushuimian.js, requires-body=true, timeout=60, tag=woniushuimian
+
+[MITM]
+hostname = snailsleep.net
+
