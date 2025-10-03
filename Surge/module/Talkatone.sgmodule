@@ -1,3 +1,6 @@
+#!name=Talkatone去广告
+#!desc=Talkatone去广告
+
 [Rule]
 # Talkatone 广告
 DOMAIN-SUFFIX,impression.link,REJECT
