@@ -1,5 +1,5 @@
 #!name=xTerm256
-#!desc=xTerm256
+#!desc=xTerm256会员解锁SSH工具
 #!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Notion.png
 
 [Rewrite]
