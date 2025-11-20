@@ -1,0 +1,19 @@
+#!name = 自动[加入/监控]TestFlight
+#!desc = 1、自动加入TF使用前先获取账号令牌和填写应用ID[自己手动添加主机名testflight.apple.com]，一旦有新的名额即刻加入；2、监控TF位置不需要令牌也无需MITM
+#!openUrl = https://apps.apple.com/app/id899247664
+#!author = 奶思[https://github.com/fmz200], DecoAri[https://github.com/DecoAri], xream[https://github.com/xream]
+#!tag = 定时任务
+#!system = 
+#!system_version = 
+#!loon_version = 3.2.4(787)
+#!homepage = https://github.com/fmz200/wool_scripts
+#!icon = https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/TestFlight_00.png
+#!raw-url=https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/Auto_Join_TF.plugin
+#!tg-channel=https://t.me/inaisi
+#!input = fmz200_TF_APP_ID
+#!date = 2025-09-21 01:17:08
+
+
+
+[Script]
+监控TF是否可加入 = type=cron,cronexp=30 * * * * ?,script-path=
