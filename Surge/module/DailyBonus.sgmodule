@@ -1,0 +1,48 @@
+#!name=定时任务合集
+#!desc=每天自动完成相关任务，根据需求进入插件打开相应开关即可。\nB站扫码获取cookie时，保持相关脚本开启，打开APP根据推送提示操作，使用后需关闭脚本，失效后再次打开即可。B站两种获取方式不可兼用。\n首次安装插件需打开对应 APP 或 小程序 获取Cookie。
+#!author=FoKit[https://github.com/FoKit], Sliverkiss[https://github.com/Sliverkiss], ClydeTime[https://github.com/ClydeTime], wish[https://github.com/mist-whisper], ZenmoFeiShi[https://github.com/ZenmoFeiShi],chavyleung[https://github.com/chavyleung]
+#!category=功能增强
+#!date=2025-08-08 15:56:00
+
+#!arguments=B站Cookie(扫码):通过扫码获取cookie,B站Cookie(APP):#,蜜雪冰城Cookie:获取Cookie,小蚕霸王餐Cookie:获取Cookie,晓晓优选Cookie:获取Cookie,歪麦霸王餐Cookie:获取Cookie,支付有优惠Cookie:获取Cookie,BiliBili_CRONEXP:99 99 31 2 7,Mixue_CRONEXP:99 99 31 2 7,Soul_CRONEXP:99 99 31 2 7,Xiaocan_CRONEXP:99 99 31 2 7,Xiaoxiao_CRONEXP:99 99 31 2 7,Waimai_CRONEXP:99 99 31 2 7,WechatPay_CRONEXP:99 99 31 2 7
+#!arguments-desc=[参数设置]\nCookie:获取cookie 脚本启停\n\n├ 获取Cookie脚本：启用（默认值）\n   └ 填入"#"：注释停用\n\nCRONEXP:定时任务参数,若想启用定时任务输入正确表达式即可，例如 0 8 * * *
+
+[Script]
+{{{B站每日任务}}}=type=cron,cronexp="{{{BiliBili_CRONEXP}}}",script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/BiliBili.js,wake-system=1,timeout=15
+
+{{{B站Cookie(扫码)}}} = type=http-response,pattern=^https?:\/\/app\.bilibili\.com\/x\/resource\/fingerprint\?,script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/BiliBili.js,requires-body=0,timeout=30
+
+{{{B站Cookie(APP)}}} = type=http-request,pattern=^https?:\/\/app\.bilibili\.com\/x\/resource\/fingerprint\?,script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/BiliBili.js,requires-body=0
+
+# 蜜雪冰城
+{{{蜜雪冰城每日签到}}} = type=cron, cronexp="{{{Mixue_CRONEXP}}}", script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/Mixue.js
+
+{{{蜜雪冰城Cookie}}} = type=http-response, pattern=^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info, script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/Mixue.js, requires-body=true, timeout=60
+
+# Soul
+{{{Soul金币签到}}} = type=cron, cronexp="{{{Soul_CRONEXP}}}", script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js, timeout=120
+
+{{{SoulCookie}}} = type=http-request, pattern=^https:\/\/increase-openapi\.soulapp\.cn\/increase\/sign\/userSign, script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js, timeout=60
+
+# 小蚕霸王餐
+{{{小蚕霸王餐签到}}} = type=cron, cronexp="{{{Xiaocan_CRONEXP}}}", script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw
+
+{{{小蚕霸王餐Cookie}}} = type=http-response, pattern=^https:\/\/gw\.xiaocantech\.com\/rpc, script-path=https://gist.githubusercontent.com/Sliverkiss/250a02315f0a2c99f42da3b3573375c8/raw, requires-body=true, timeout=60
+
+# 晓晓优选
+{{{晓晓优选签到}}} = type=cron, cronexp="{{{Xiaoxiao_CRONEXP}}}", script-path=https://gist.githubusercontent.com/Sliverkiss/991a81be1fc8cf2a1937432be68f5521/raw/xxyx.js
+
+{{{晓晓优选Cookie}}} = type=http-response, pattern=^https:\/\/xxyx-client-api\.xiaoxiaoyouxuan\.com\/my, script-path=https://gist.githubusercontent.com/Sliverkiss/991a81be1fc8cf2a1937432be68f5521/raw/xxyx.js, requires-body=true, timeout=60
+
+# 歪麦霸王餐
+{{{歪麦每日任务}}}=type=cron,cronexp="{{{Waimai_CRONEXP}}}",script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js,wake-system=1,timeout=15
+
+{{{歪麦霸王餐Cookie}}} = type=http-request, pattern=^https:\/\/wmapp-api\.waimaimingtang\.com\/api\/api\/v2\/user\/api_user_info_one, script-path=https://gist.githubusercontent.com/Sliverkiss/49a9ffb2169a2becc33bf4fdbf6eb99a/raw/wmbwc.js, requires-body=true, max-size=-1, timeout=60
+
+# 微信支付有优惠
+{{{支付有优惠金币获取}}} = type=cron, cronexp="{{{WechatPay_CRONEXP}}}", script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/wechat_pay_coupon.js
+
+{{{支付有优惠Cookie}}} = type=http-response, pattern=https:\/\/payapp\.weixin\.qq\.com\/(coupon-center-user\/home\/login|coupon-center-award\/award\/detail), script-path=https://raw.githubusercontent.com/FoKit/Scripts/main/scripts/wechat_pay_coupon.js, requires-body=true
+
+[MITM]
+hostname = %APPEND% app.bilibili.com, mxsa.mxbc.net, payapp.weixin.qq.com, increase-openapi.soulapp.cn, maicai.api.ddxq.mobi, wmapp-api.waimaimingtang.com, gw.xiaocantech.com, xxyx-client-api.xiaoxiaoyouxuan.com
