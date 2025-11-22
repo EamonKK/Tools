@@ -218,7 +218,6 @@ DOMAIN-SUFFIX,googlee.com
 DOMAIN-SUFFIX,googleearth.com
 DOMAIN-SUFFIX,googlefiber.com
 DOMAIN-SUFFIX,googlefinland.com
-DOMAIN-SUFFIX,googlemail.com
 DOMAIN-SUFFIX,googlemaps.com
 DOMAIN-SUFFIX,googlemashups.com
 DOMAIN-SUFFIX,googleoptimize.com
@@ -707,7 +706,6 @@ DOMAIN-SUFFIX,blogspot.co.za
 DOMAIN-SUFFIX,google.co.za
 DOMAIN-SUFFIX,google.co.zm
 DOMAIN-SUFFIX,google.co.zw
-DOMAIN-KEYWORD,gmail
 DOMAIN-KEYWORD,google
 DOMAIN-KEYWORD,appspot
 DOMAIN-KEYWORD,blogspot
