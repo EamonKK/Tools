@@ -1,0 +1,8 @@
+# NAME: Reject
+# AUTHOR: Eamon
+# UPDATED: 2025-11-23 09:12:33
+# DOMAIN: 1
+# DOMAIN-SUFFIX: 
+
+DOMAIN,msmp.abchina.com.cn
+IP-CIDR,95.161.76.100/31
