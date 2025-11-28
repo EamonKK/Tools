@@ -5,4 +5,4 @@
 # DOMAIN-SUFFIX: 
 
 DOMAIN,msmp.abchina.com.cn
-IP-CIDR,95.161.76.100/31
+IP-CIDR,95.161.76.100/31,no-resolve
