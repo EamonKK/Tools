@@ -5,12 +5,12 @@
 #!openUrl=https://apps.apple.com/app/id324684580
 #!tag=去广告
 #!loon_version=3.2.4(787)
-#!homepage=https://pluginhub.kelee.one
+#!homepage=https://hub.kelee.one
 #!date=2025-08-10 15:30:17
 #!arguments=tab:false,useractivity:true
 
 [Rule]
-AND,((DOMAIN-SUFFIX,spotify.com,extended-matching),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,spotify.com),(PROTOCOL,QUIC)),REJECT
 
 [URL Rewrite]
 ^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/artistview\/v1\/artist\/(.*)&platform=iphone https://spclient.wg.spotify.com/artistview/v1/artist/$1&platform=ipad header
