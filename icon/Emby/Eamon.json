@@ -1,4 +1,6 @@
-  "icons": [
+"name": "Emby专用",
+  "description": "当前版本日期为260127",
+    "icons": [
     {
       "name": "emby",
       "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Emby.png"
