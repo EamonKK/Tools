@@ -13,7 +13,7 @@ const baseUrl = "https://mxsa.mxbc.net"
 const _headers = {
     "app": "mxbc",
     "appchannel": "xiaomi",
-    "appversion": "3.2.7",
+    "appversion": "3.3.45",
     "Access-Token": "",
     "Host": "mxsa.mxbc.net",
     "User-Agent": "okhttp/4.4.1"
