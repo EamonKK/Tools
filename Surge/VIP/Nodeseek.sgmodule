@@ -1,8 +1,5 @@
-#!name=Nodeseek签到
-#!desc=Nodeseek签到
+#!name=NodeSeek 自动签到#!desc=自动获取 Cookie + 每日签到 + 鸡腿通知#!author=ChatGPT#!homepage=https://www.nodeseek.com#!icon=https://www.google.com/s2/favicons?sz=256&domain=nodeseek.com
 
-[Script]
-NodeSeek获取token = type=http-response, pattern=^https:\/\/www\.nodeseek\.com\/api\/account\/getInfo\/.+\?readme=1&signature=1&phone=1, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=true, timeout=60
+[Script]NodeSeek Cookie = type=http-response,pattern=https://www.nodeseek.com/api/account/getInfo/.*,requires-body=1,script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.jsNodeSeek 签到 = type=cron,cronexp="0 9 * * *",wake-system=1,timeout=60,script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js
 
-[MITM]
-hostname = %APPEND% www.nodeseek.com
+[MITM]hostname = %APPEND% www.nodeseek.com
