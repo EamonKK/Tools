@@ -15,9 +15,9 @@
 {{{B站Cookie(APP)}}} = type=http-request,pattern=^https?:\/\/app\.bilibili\.com\/x\/resource\/fingerprint\?,script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/BiliBili.js,requires-body=0
 
 # 蜜雪冰城
-{{{蜜雪冰城每日签到}}} = type=cron, cronexp="{{{Mixue_CRONEXP}}}", script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/Mixue.js
+{{{蜜雪冰城每日签到}}} = type=cron, cronexp="{{{Mixue_CRONEXP}}}", script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Mxbc.js
 
-{{{蜜雪冰城Cookie}}} = type=http-response, pattern=^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info, script-path=https://raw.githubusercontent.com/mist-whisper/Script/master/DailyBonus/Mixue.js, requires-body=true, timeout=60
+{{{蜜雪冰城Cookie}}} = type=http-response, pattern=^https:\/\/mxsa\.mxbc\.net\/api\/v1\/customer\/info, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Mxbc.js, requires-body=true, timeout=60
 
 # Soul
 #{{{Soul金币签到}}} = type=cron, cronexp="{{{Soul_CRONEXP}}}", script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/SoulSing.js, timeout=120
