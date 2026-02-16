@@ -1,0 +1,8 @@
+#!name=小熊油耗
+#!desc=小熊油耗VIP
+
+[Script]
+xiaoxiongyouhao = type=http-response, pattern=^http[s]?:\/\/www.xiaoxiongyouhao.com\/api\/vip\/index.php, script-path=https://raw.githubusercontent.com/89996462/Quantumult-X/main/ycdz/xiaoxiongyouhao.js, requires-body=true, max-size=-1, timeout=60
+
+[MITM]
+hostname = %APPEND% www.xiaoxiongyouhao.com
