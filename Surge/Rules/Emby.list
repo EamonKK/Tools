@@ -3,10 +3,10 @@
 # REPO: https://github.com/justdoiting/emby-rules
 # UPDATED: 2025-10-1 09:18:49
 # DOMAIN: 0
-# DOMAIN-KEYWORD: 0
-# DOMAIN-SUFFIX: 16
+# DOMAIN-KEYWORD: 8
+# DOMAIN-SUFFIX: 42
 # PROCESS-NAME: 0
-# TOTAL: 16
+# TOTAL: 50
 DOMAIN-SUFFIX,emby.wtf
 DOMAIN-SUFFIX,term.wtf
 DOMAIN-SUFFIX,emos.lol
