@@ -1,6 +1,6 @@
 {
     "name": "Emby专用",
-    "description": "当前版本日期为260127",
+    "description": "当前版本日期为260222",
     "icons": [
     {
       "name": "emby",
@@ -99,8 +99,8 @@
       "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/FWorks.png"
     },
       {
-      "name":"Peach",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Peach.png"
+      "name":"NiuBi",
+      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/NiuBi.png"
     },
       {
       "name":"Peach",
