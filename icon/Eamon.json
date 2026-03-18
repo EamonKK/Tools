@@ -1,170 +1,170 @@
 {
   "name": "Emby专用",
-  "description": "当前版本日期为260308",
+  "description": "当前版本日期为260319",
   "icons": [
     {
       "name": "emby",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Emby.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Emby.png"
     },
     {
       "name": "Gousheng",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Gousheng.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Gousheng.png"
     },
     {
       "name": "Mirai",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Mirai.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Mirai.png"
     },
     {
       "name": "Nihao",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Nihao.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Nihao.png"
     },
     {
       "name": "Nya",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Nya.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Nya.png"
     },
     {
       "name": "Handou",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Handou.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Handou.png"
     },
     {
       "name": "Laoyouji",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Laoyouji.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Laoyouji.png"
     },
     {
       "name": "WE",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/WE.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/WE.png"
     },
     {
       "name": "Jingzhe",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Jingzhe.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Jingzhe.png"
     },
     {
       "name": "SNTP+",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/SNTP+.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/SNTP+.png"
     },
     {
       "name": "Xiaoxiami",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Xiaoxiami.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Xiaoxiami.png"
     },
     {
       "name": "Feiyue",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Feiyue.png"
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Feiyue.png"
     },
     {
-      "name":"KLEmby",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/KLEmby.png"
+      "name": "KLEmby",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/KLEmby.png"
     },
     {
-      "name":"NICE",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/NICE.png"
+      "name": "NICE",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/NICE.png"
     },
     {
-      "name":"Qidianzhan",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Qidianzhan.png"
+      "name": "Qidianzhan",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Qidianzhan.png"
     },
     {
-      "name":"Youno",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Youno.png"
+      "name": "Youno",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Youno.png"
     },
     {
-      "name":"Peach",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Peach.png"
+      "name": "Peach",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Peach.png"
     },
     {
-      "name":"Yuebing",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Yuebing.png"
+      "name": "Yuebing",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Yuebing.png"
     },
     {
-      "name":"YeZi",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/YeZi.png"
+      "name": "YeZi",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/YeZi.png"
     },
     {
-      "name":"YeZiHD",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/YeZiHD.png"
+      "name": "YeZiHD",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/YeZiHD.png"
     },
     {
-      "name":"Feimiao",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Feimiao.png"
+      "name": "Feimiao",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Feimiao.png"
     },
     {
-      "name":"KiKu",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/KiKu.png"
+      "name": "KiKu",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/KiKu.png"
     },
     {
-      "name":"HKA",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/HKA.png"
+      "name": "HKA",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/HKA.png"
     },
     {
-      "name":"FWorks",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/FWorks.png"
+      "name": "FWorks",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/FWorks.png"
     },
     {
-      "name":"NiuBi",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/NiuBi.png"
+      "name": "NiuBi",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/NiuBi.png"
     },
     {
-      "name":"XYZ",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/XYZ.png"
+      "name": "XYZ",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/XYZ.png"
     },
     {
-      "name":"CC",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/CC.png"
+      "name": "CC",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/CC.png"
     },
     {
-      "name":"DaDaEmby",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/DaDaEmby.png"
+      "name": "DaDaEmby",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/DaDaEmby.png"
     },
     {
-      "name":"FeiNiu",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/FeiNiu.png"
+      "name": "FeiNiu",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/FeiNiu.png"
     },
     {
-      "name":"HG",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/HG.png"
+      "name": "HG",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/HG.png"
     },
     {
-      "name":"OkEmby",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/OkEmby.png"
+      "name": "OkEmby",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/OkEmby.png"
     },
     {
-      "name":"YiZhi",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/YiZhi.png"
+      "name": "YiZhi",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/YiZhi.png"
     },
     {
-      "name":"Sherk",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Sherk.png"
+      "name": "Sherk",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Sherk.png"
     },
     {
-      "name":"ZDZ",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/ZDZ.png"
+      "name": "ZDZ",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/ZDZ.png"
     },
     {
-      "name":"HoHai",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/HoHai.png"
+      "name": "HoHai",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/HoHai.png"
     },
     {
-      "name":"MDL",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/MDL.png"
+      "name": "MDL",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/MDL.png"
     },
     {
-      "name":"Zhezhi",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Zhezhi.png"
+      "name": "Zhezhi",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Zhezhi.png"
     },
     {
-      "name":"Jiwo",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Jiwo.png"
+      "name": "Jiwo",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Jiwo.png"
     },
     {
-      "name":"Jianshouqing",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Jianshouqing.png"
+      "name": "Jianshouqing",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Jianshouqing.png"
     },
     {
-      "name":"JMS",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/JMS.png"
+      "name": "JMS",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/JMS.png"
     },
     {
-      "name":"Emos",
-      "url": "https:\/\/raw.githubusercontent.com\/EamonKK\/Tools\/refs\/heads\/main\/icon\/Emby\/Emos.png"
-    },
+      "name": "Emos",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Emos.png"
+    }
   ]
 }
