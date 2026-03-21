@@ -170,5 +170,9 @@
       "name": "MSKY",
       "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/MSKY.png"
     },
+    {
+      "name": "Ask",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Ask.png"
+    },
   ]
 }
