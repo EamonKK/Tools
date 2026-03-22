@@ -174,5 +174,13 @@
       "name": "Ask",
       "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Ask.png"
     },
+    {
+      "name": "Linjing",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/Linjing.png"
+    },
+    {
+      "name": "EchoFlix",
+      "url": "https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/icon/Emby/EchoFlix.png"
+    },
   ]
 }
