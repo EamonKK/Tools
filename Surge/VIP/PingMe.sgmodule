@@ -1,0 +1,10 @@
+#!name=PingMe
+#!desc=PingMe
+
+[Script]
+PingMe = type=http-request, pattern=^https:\/\/api\.pingmeapp\.net\/app\/queryBalanceAndBonus, script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/PingMe.js, timeout=60
+
+PingMe签到 = type=cron, cronexp="30 8,20 * * *", script-path=https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/PingMe.js, timeout=120, wake-system=1
+
+[MITM]
+hostname = %APPEND% api.pingmeapp.net
