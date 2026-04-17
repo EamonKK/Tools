@@ -1,7 +1,7 @@
-// ===== PingMe 稳定版 =====
+// ===== PingMe 最终稳定版 =====
 
 const scriptName = "PingMe";
-const ckKey = "pingme_capture_v4";
+const ckKey = "pingme_final_v1";
 const SECRET = "0fOiukQq7jXZV2GRi9LGlO";
 
 const MAX_VIDEO = 5;
@@ -17,9 +17,9 @@ const read = key => $persistentStore.read(key);
 const write = (val, key) => $persistentStore.write(val, key);
 
 // ===== HTTP =====
-function get(url, headers) {
+function get(options) {
   return new Promise((resolve, reject) => {
-    $httpClient.get({ url, headers }, (err, resp, body) => {
+    $httpClient.get(options, (err, resp, body) => {
       if (err) reject(err);
       else resolve({ status: resp.status, body });
     });
@@ -43,7 +43,7 @@ function getUTC() {
   return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`;
 }
 
-// ===== MD5（可用版）=====
+// ===== MD5 =====
 function md5(string) {
   function RotateLeft(lValue, iShiftBits){return(lValue<<iShiftBits)|(lValue>>>(32-iShiftBits));}
   function AddUnsigned(lX,lY){const lX4=lX&0x40000000,lY4=lY&0x40000000,lX8=lX&0x80000000,lY8=lY&0x80000000,lResult=(lX&0x3FFFFFFF)+(lY&0x3FFFFFFF);if(lX4&lY4)return lResult^0x80000000^lX8^lY8;if(lX4|lY4)return(lResult&0x40000000)?(lResult^0xC0000000^lX8^lY8):(lResult^0x40000000^lX8^lY8);return lResult^lX8^lY8;}
@@ -89,52 +89,52 @@ function buildUrl(path, capture) {
   return `https://api.pingmeapp.net/app/${path}?${qs}`;
 }
 
-// ===== 抓参 =====
+// ===== 抓参（自动识别有效请求）=====
 if (typeof $request !== "undefined") {
 
-  const headers = $request.headers || {};
-
-  // 🔥 只保存带授权的请求（关键修复）
-  if (headers.authorization || headers.Authorization || headers.token) {
+  if ($request.url.includes("queryBalanceAndBonus")) {
 
     const capture = {
       params: parseQuery($request.url),
-      headers: headers
+      headers: $request.headers
     };
 
-    write(JSON.stringify(capture), ckKey);
+    // 🔥 验证是否有效（关键）
+    get({ url: $request.url, headers: $request.headers }).then(res => {
+      try {
+        const d = JSON.parse(res.body);
 
-    notify("✅ 抓参成功", "已获取有效身份信息");
+        if (d && d.retcode === 0) {
+          write(JSON.stringify(capture), ckKey);
+          notify("✅ 抓参成功", "已锁定有效请求（稳定版）");
+        }
+      } catch {}
+    });
   }
 
   $done({});
 }
 
-// ===== 任务 =====
+// ===== 任务执行 =====
 else {
 
   const raw = read(ckKey);
 
   if (!raw) {
-    notify("⚠️ 未抓参", "请重新打开 PingMe");
+    notify("⚠️ 未抓参", "打开 PingMe 首页");
     $done();
   }
 
   const capture = JSON.parse(raw);
   const headers = capture.headers;
-
   const msgs = [];
 
   function api(path) {
-    return get(buildUrl(path, capture), headers);
+    return get({ url: buildUrl(path, capture), headers });
   }
 
-  function safeParse(res) {
-    try {
-      return JSON.parse(res.body);
-    } catch {
-      return null;
-    }
+  function parse(res) {
+    try { return JSON.parse(res.body); } catch { return null; }
   }
 
   function videoLoop() {
@@ -146,23 +146,15 @@ else {
       return new Promise(resolve => {
         setTimeout(() => {
           i++;
-
           api("videoBonus").then(res => {
-            const d = safeParse(res);
-
+            const d = parse(res);
             if (!d || d.retcode !== 0) {
-              msgs.push(`⏸ 视频${i} 失败`);
+              msgs.push(`⏸ 视频${i}`);
               return resolve();
             }
-
             msgs.push(`🎬 视频${i} +${d.result?.bonus || "?"}`);
             resolve(next());
-
-          }).catch(() => {
-            msgs.push(`❌ 视频${i}失败`);
-            resolve();
-          });
-
+          }).catch(() => resolve());
         }, i === 0 ? 1500 : VIDEO_DELAY);
       });
     }
@@ -172,10 +164,10 @@ else {
 
   api("queryBalanceAndBonus")
     .then(res => {
-      const d = safeParse(res);
+      const d = parse(res);
 
       if (!d || d.retcode !== 0) {
-        notify("❌ Token失效", "请重新抓参");
+        notify("❌ 失效", "重新打开 PingMe 抓参");
         $done();
         return;
       }
@@ -184,20 +176,20 @@ else {
       return api("checkIn");
     })
     .then(res => {
-      const d = safeParse(res);
+      const d = parse(res);
       if (d) msgs.push(`✅签到：${d.retmsg}`);
       return videoLoop();
     })
     .then(() => api("queryBalanceAndBonus"))
     .then(res => {
-      const d = safeParse(res);
+      const d = parse(res);
       if (d) msgs.push(`💰最新：${d.result?.balance || "?"}`);
 
-      notify("🎉完成", msgs.join("\n"));
+      notify("🎉 完成", msgs.join("\n"));
       $done();
     })
     .catch(() => {
-      notify("❌执行异常", "检查网络或重新抓参");
+      notify("❌ 异常", "网络或参数问题");
       $done();
     });
 }
