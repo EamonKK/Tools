@@ -1,82 +1,75 @@
-//2026/04/16 (Surge 版)
-/*
-@Name：PingMe 自动化签到+视频奖励
-@Author：怎么肥事
-@Converted：QX → Surge
+// PingMe Auto CheckIn + Video Bonus (Surge)
+// @Name: PingMe
+// @Author: ZenmoFeiShi
+//
+// [Script]
+// PingMe_Capture = type=http-request,pattern=^https://api.pingmeapp.net/app/queryBalanceAndBonus,requires-body=0,max-size=0,script-path=PingMe_Surge.js
+// PingMe_Task    = type=cron,cronexp=30 8,20 * * *,wake-system=1,script-path=PingMe_Surge.js
+//
+// [MITM]
+// hostname = %APPEND% api.pingmeapp.net
 
-[Script]
+var scriptName = ‘PingMe’;
+var storeKey = ‘pingme_accounts_v1’;
+var SECRET = ‘0fOiukQq7jXZV2GRi9LGlO’;
+var MAX_VIDEO = 5;
+var VIDEO_DELAY = 8000;
+var ACCOUNT_GAP = 3500;
 
-# 抓取参数（HTTP 拦截）
+var IOS_VERSIONS = [‘17.5.1’,‘17.6.1’,‘17.4.1’,‘17.2.1’,‘16.7.8’,‘17.6’,‘17.3.1’,‘18.0.1’,‘17.1.2’,‘16.6.1’];
+var IOS_SCALES   = [‘2.00’,‘3.00’,‘3.00’,‘2.00’,‘3.00’];
+var IPHONE_MODELS= [‘iPhone14,3’,‘iPhone13,3’,‘iPhone15,3’,‘iPhone16,1’,‘iPhone14,7’,‘iPhone13,2’,‘iPhone15,2’,‘iPhone12,1’];
+var CFN_VERS     = [‘1410.0.3’,‘1494.0.7’,‘1568.100.1’,‘1209.1’,‘1474.0.4’,‘1568.200.2’];
+var DARWIN_VERS  = [‘22.6.0’,‘23.5.0’,‘23.6.0’,‘24.0.0’,‘22.4.0’];
 
-http-request ^https://api.pingmeapp.net/app/queryBalanceAndBonus script-path=PingMe_Surge.js, requires-body=false, tag=PingMe抓参
-
-# 定时签到任务
-
-cron “30 8,20 * * *” script-path=PingMe_Surge.js, tag=PingMe签到
-
-[MITM]
-hostname = %APPEND% api.pingmeapp.net
-*/
-
-const scriptName = ‘PingMe’;
-const ckKey = ‘pingme_capture_v3’;
-const SECRET = ‘0fOiukQq7jXZV2GRi9LGlO’;
-const MAX_VIDEO = 5;
-const VIDEO_DELAY = 8000;
-
-// ─── MD5 ───────────────────────────────────────────────────────────────────
+// ––––– MD5 –––––
 function MD5(string) {
 function RotateLeft(lValue, iShiftBits) { return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits)); }
 function AddUnsigned(lX, lY) {
-const lX4 = lX & 0x40000000, lY4 = lY & 0x40000000, lX8 = lX & 0x80000000, lY8 = lY & 0x80000000;
-const lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+var lX4 = lX & 0x40000000, lY4 = lY & 0x40000000, lX8 = lX & 0x80000000, lY8 = lY & 0x80000000;
+var lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
 if (lX4 & lY4) return lResult ^ 0x80000000 ^ lX8 ^ lY8;
 if (lX4 | lY4) return (lResult & 0x40000000) ? (lResult ^ 0xC0000000 ^ lX8 ^ lY8) : (lResult ^ 0x40000000 ^ lX8 ^ lY8);
 return lResult ^ lX8 ^ lY8;
 }
-function F(x, y, z) { return (x & y) | ((~x) & z); }
-function G(x, y, z) { return (x & z) | (y & (~z)); }
-function H(x, y, z) { return x ^ y ^ z; }
-function I(x, y, z) { return y ^ (x | (~z)); }
-function FF(a, b, c, d, x, s, ac) { a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac)); return AddUnsigned(RotateLeft(a, s), b); }
-function GG(a, b, c, d, x, s, ac) { a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac)); return AddUnsigned(RotateLeft(a, s), b); }
-function HH(a, b, c, d, x, s, ac) { a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac)); return AddUnsigned(RotateLeft(a, s), b); }
-function II(a, b, c, d, x, s, ac) { a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac)); return AddUnsigned(RotateLeft(a, s), b); }
+function F(x,y,z){return(x&y)|((~x)&z);}
+function G(x,y,z){return(x&z)|(y&(~z));}
+function H(x,y,z){return x^y^z;}
+function I(x,y,z){return y^(x|(~z));}
+function FF(a,b,c,d,x,s,ac){a=AddUnsigned(a,AddUnsigned(AddUnsigned(F(b,c,d),x),ac));return AddUnsigned(RotateLeft(a,s),b);}
+function GG(a,b,c,d,x,s,ac){a=AddUnsigned(a,AddUnsigned(AddUnsigned(G(b,c,d),x),ac));return AddUnsigned(RotateLeft(a,s),b);}
+function HH(a,b,c,d,x,s,ac){a=AddUnsigned(a,AddUnsigned(AddUnsigned(H(b,c,d),x),ac));return AddUnsigned(RotateLeft(a,s),b);}
+function II(a,b,c,d,x,s,ac){a=AddUnsigned(a,AddUnsigned(AddUnsigned(I(b,c,d),x),ac));return AddUnsigned(RotateLeft(a,s),b);}
 function ConvertToWordArray(str) {
-const lMessageLength = str.length;
-const lNumberOfWords_temp1 = lMessageLength + 8;
-const lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
-const lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
-const lWordArray = Array(lNumberOfWords - 1).fill(0);
-let lBytePosition = 0, lByteCount = 0;
-while (lByteCount < lMessageLength) {
-const lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-lBytePosition = (lByteCount % 4) * 8;
-lWordArray[lWordCount] |= str.charCodeAt(lByteCount) << lBytePosition;
+var lMessageLength=str.length,lNumberOfWords_temp1=lMessageLength+8;
+var lNumberOfWords_temp2=(lNumberOfWords_temp1-(lNumberOfWords_temp1%64))/64;
+var lNumberOfWords=(lNumberOfWords_temp2+1)*16;
+var lWordArray=Array(lNumberOfWords-1).fill(0);
+var lBytePosition=0,lByteCount=0;
+while(lByteCount<lMessageLength){
+var lWordCount=(lByteCount-(lByteCount%4))/4;
+lBytePosition=(lByteCount%4)*8;
+lWordArray[lWordCount]|=str.charCodeAt(lByteCount)<<lBytePosition;
 lByteCount++;
 }
-const lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-lBytePosition = (lByteCount % 4) * 8;
-lWordArray[lWordCount] |= 0x80 << lBytePosition;
-lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
-lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+var lWC=(lByteCount-(lByteCount%4))/4;
+lBytePosition=(lByteCount%4)*8;
+lWordArray[lWC]|=0x80<<lBytePosition;
+lWordArray[lNumberOfWords-2]=lMessageLength<<3;
+lWordArray[lNumberOfWords-1]=lMessageLength>>>29;
 return lWordArray;
 }
 function WordToHex(lValue) {
-let WordToHexValue = ‘’;
-for (let lCount = 0; lCount <= 3; lCount++) {
-const lByte = (lValue >>> (lCount * 8)) & 255;
-const t = ‘0’ + lByte.toString(16);
-WordToHexValue += t.substr(t.length - 2, 2);
+var r=’’;
+for(var i=0;i<=3;i++){var b=(lValue>>>(i*8))&255;var t=‘0’+b.toString(16);r+=t.substr(t.length-2,2);}
+return r;
 }
-return WordToHexValue;
-}
-const x = ConvertToWordArray(string);
-let a = 0x67452301, b = 0xEFCDAB89, c = 0x98BADCFE, d = 0x10325476;
-const S11=7,S12=12,S13=17,S14=22,S21=5,S22=9,S23=14,S24=20;
-const S31=4,S32=11,S33=16,S34=23,S41=6,S42=10,S43=15,S44=21;
-for (let k = 0; k < x.length; k += 16) {
-const AA=a,BB=b,CC=c,DD=d;
+var x=ConvertToWordArray(string);
+var a=0x67452301,b=0xEFCDAB89,c=0x98BADCFE,d=0x10325476;
+var S11=7,S12=12,S13=17,S14=22,S21=5,S22=9,S23=14,S24=20;
+var S31=4,S32=11,S33=16,S34=23,S41=6,S42=10,S43=15,S44=21;
+for(var k=0;k<x.length;k+=16){
+var AA=a,BB=b,CC=c,DD=d;
 a=FF(a,b,c,d,x[k+0],S11,0xD76AA478);d=FF(d,a,b,c,x[k+1],S12,0xE8C7B756);c=FF(c,d,a,b,x[k+2],S13,0x242070DB);b=FF(b,c,d,a,x[k+3],S14,0xC1BDCEEE);
 a=FF(a,b,c,d,x[k+4],S11,0xF57C0FAF);d=FF(d,a,b,c,x[k+5],S12,0x4787C62A);c=FF(c,d,a,b,x[k+6],S13,0xA8304613);b=FF(b,c,d,a,x[k+7],S14,0xFD469501);
 a=FF(a,b,c,d,x[k+8],S11,0x698098D8);d=FF(d,a,b,c,x[k+9],S12,0x8B44F7AF);c=FF(c,d,a,b,x[k+10],S13,0xFFFF5BB1);b=FF(b,c,d,a,x[k+11],S14,0x895CD7BE);
@@ -98,171 +91,212 @@ a=AddUnsigned(a,AA);b=AddUnsigned(b,BB);c=AddUnsigned(c,CC);d=AddUnsigned(d,DD);
 return (WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d)).toLowerCase();
 }
 
-// ─── 工具函数 ───────────────────────────────────────────────────────────────
+// ––––– helpers –––––
 function getUTCSignDate() {
-const now = new Date();
-const pad = n => String(n).padStart(2, ‘0’);
-return `${now.getUTCFullYear()}-${pad(now.getUTCMonth()+1)}-${pad(now.getUTCDate())} ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+var now = new Date();
+var pad = function(n){return String(n).padStart(2,‘0’);};
+return now.getUTCFullYear()+’-’+pad(now.getUTCMonth()+1)+’-’+pad(now.getUTCDate())+’ ‘+pad(now.getUTCHours())+’:’+pad(now.getUTCMinutes())+’:’+pad(now.getUTCSeconds());
 }
 
 function parseRawQuery(url) {
-const query = (url.split(’?’)[1] || ‘’).split(’#’)[0];
-const rawMap = {};
-query.split(’&’).forEach(pair => {
-if (!pair) return;
-const idx = pair.indexOf(’=’);
-if (idx < 0) return;
-rawMap[pair.slice(0, idx)] = pair.slice(idx + 1);
+var query = (url.split(’?’)[1]||’’).split(’#’)[0];
+var rawMap = {};
+query.split(’&’).forEach(function(pair){
+if(!pair) return;
+var idx = pair.indexOf(’=’);
+if(idx<0) return;
+rawMap[pair.slice(0,idx)] = pair.slice(idx+1);
 });
 return rawMap;
 }
 
+function fingerprintOf(paramsRaw) {
+var drop = {sign:1,signDate:1,timestamp:1,ts:1,nonce:1,random:1,reqTime:1,reqId:1,requestId:1};
+var base = Object.keys(paramsRaw||{}).filter(function(k){return !drop[k];}).sort().map(function(k){return k+’=’+paramsRaw[k];}).join(’&’);
+return MD5(base).slice(0,12);
+}
+
+function loadStore() {
+var raw = $persistentStore.read(storeKey);
+if(!raw) return {version:1,accounts:{},order:[]};
+try {
+var obj = JSON.parse(raw);
+if(!obj.accounts) obj.accounts={};
+if(!Array.isArray(obj.order)) obj.order=Object.keys(obj.accounts);
+return obj;
+} catch(e) { return {version:1,accounts:{},order:[]}; }
+}
+
+function saveStore(store) {
+$persistentStore.write(JSON.stringify(store), storeKey);
+}
+
+function pickItem(arr, seed) { return arr[seed % arr.length]; }
+
+function buildUA(baseUA, seed) {
+var iosVer  = pickItem(IOS_VERSIONS, seed);
+var scale   = pickItem(IOS_SCALES,   seed+1);
+var model   = pickItem(IPHONE_MODELS,seed+2);
+var cfn     = pickItem(CFN_VERS,     seed+3);
+var darwin  = pickItem(DARWIN_VERS,  seed+4);
+if(baseUA && typeof baseUA===‘string’) {
+var ua=baseUA, changed=false;
+if(/iOS \d+(.\d+){0,2}/.test(ua)){ua=ua.replace(/iOS \d+(.\d+){0,2}/,‘iOS ‘+iosVer);changed=true;}
+if(/Scale/\d+(.\d+)?/.test(ua)){ua=ua.replace(/Scale/\d+(.\d+)?/,‘Scale/’+scale);changed=true;}
+if(/iPhone\d+,\d+/.test(ua)){ua=ua.replace(/iPhone\d+,\d+/,model);changed=true;}
+if(/CFNetwork/[\d.]+/.test(ua)){ua=ua.replace(/CFNetwork/[\d.]+/,‘CFNetwork/’+cfn);changed=true;}
+if(/Darwin/[\d.]+/.test(ua)){ua=ua.replace(/Darwin/[\d.]+/,‘Darwin/’+darwin);changed=true;}
+if(changed) return ua;
+}
+return ‘PingMe/1.0.0 (’+model+’; iOS ‘+iosVer+’; Scale/’+scale+’) CFNetwork/’+cfn+’ Darwin/’+darwin;
+}
+
 function buildSignedParamsRaw(capture) {
-const params = {};
-Object.keys(capture.paramsRaw || {}).forEach(k => {
-if (k !== ‘sign’ && k !== ‘signDate’) params[k] = capture.paramsRaw[k];
+var params = {};
+Object.keys(capture.paramsRaw||{}).forEach(function(k){
+if(k!==‘sign’&&k!==‘signDate’) params[k]=capture.paramsRaw[k];
 });
 params.signDate = getUTCSignDate();
-const signBase = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join(’&’);
-params.sign = MD5(signBase + SECRET);
+var signBase = Object.keys(params).sort().map(function(k){return k+’=’+params[k];}).join(’&’);
+params.sign = MD5(signBase+SECRET);
 return params;
 }
 
 function buildUrl(path, capture) {
-const params = buildSignedParamsRaw(capture);
-const qs = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join(’&’);
-return `https://api.pingmeapp.net/app/${path}?${qs}`;
+var params = buildSignedParamsRaw(capture);
+var qs = Object.keys(params).map(function(k){return k+’=’+encodeURIComponent(params[k]);}).join(’&’);
+return ‘https://api.pingmeapp.net/app/’+path+’?’+qs;
 }
 
-function buildHeaders(capture) {
-const headers = Object.assign({}, capture.headers || {});
-// 删除 HTTP/2 伪头和无效字段
-[‘content-length’, ‘Content-Length’, ‘:authority’, ‘:method’, ‘:path’, ‘:scheme’].forEach(k => delete headers[k]);
-headers[‘Host’] = ‘api.pingmeapp.net’;
-headers[‘Accept’] = headers[‘Accept’] || ‘application/json’;
+function buildHeaders(capture, ua) {
+var headers = {};
+Object.keys(capture.headers||{}).forEach(function(k){headers[k]=capture.headers[k];});
+delete headers[‘Content-Length’]; delete headers[‘content-length’];
+delete headers[’:authority’]; delete headers[’:method’]; delete headers[’:path’]; delete headers[’:scheme’];
+headers[‘Host’]   = ‘api.pingmeapp.net’;
+headers[‘Accept’] = headers[‘Accept’]||‘application/json’;
+Object.keys(headers).forEach(function(k){if(k.toLowerCase()===‘user-agent’) delete headers[k];});
+headers[‘User-Agent’] = ua;
 return headers;
 }
 
-function notifyDone(title, body) {
-// Surge 通知：$notification.post(title, subtitle, body)
+function notify(title, body) {
 $notification.post(scriptName, title, body);
 }
 
-// ─── HTTP 请求封装（QX $task.fetch → Surge $httpClient.get）─────────────────
-function fetchApi(path, capture, headers) {
-return new Promise((resolve, reject) => {
-$httpClient.get({
-url: buildUrl(path, capture),
-headers: headers
-}, (error, response, body) => {
-if (error) {
-reject({ error });
-} else {
-resolve({ body });
+function sleep(ms) {
+return new Promise(function(r){setTimeout(r,ms);});
 }
+
+function httpGet(url, headers) {
+return new Promise(function(resolve, reject){
+$httpClient.get({url:url, headers:headers}, function(error, response, data){
+if(error) reject({error:error});
+else resolve({status:response.status, body:data});
 });
 });
 }
 
-// ─── 主逻辑 ─────────────────────────────────────────────────────────────────
+// ––––– account runner –––––
+function runAccount(acc, index, total) {
+var tag = ‘[Account ‘+(index+1)+’/’+total+’ ‘+(acc.alias||acc.id)+’]’;
+var ua  = buildUA(acc.baseUA, acc.uaSeed);
+var headers = buildHeaders(acc.capture, ua);
+var msgs = [tag];
 
-// 判断是 HTTP 拦截模式还是定时任务模式
-if (typeof $request !== ‘undefined’ && $request) {
-// ── 抓参模式（http-request 触发）──
-const capture = {
-url: $request.url,
-paramsRaw: parseRawQuery($request.url),
-headers: Object.assign({}, $request.headers || {})
+function fetchApi(path) {
+return httpGet(buildUrl(path, acc.capture), headers);
+}
+
+function doVideoLoop(count) {
+var i=0;
+function next() {
+if(i>=count) return Promise.resolve();
+return new Promise(function(resolve){
+setTimeout(function(){
+i++;
+fetchApi(‘videoBonus’).then(function(res){
+try {
+var d=JSON.parse(res.body);
+if(d.retcode===0){msgs.push(‘Video ‘+i+’: +’+((d.result&&d.result.bonus)||’?’)+’ Coins’);resolve(next());}
+else{msgs.push(’Video ‘+i+’ skip: ’+d.retmsg);resolve();}
+} catch(e){msgs.push(‘Video ‘+i+’ parse error’);resolve();}
+}).catch(function(err){msgs.push(’Video ‘+i+’ error: ’+(err.error||‘fail’));resolve();});
+}, i===0?1500:VIDEO_DELAY);
+});
+}
+return next();
+}
+
+return fetchApi(‘queryBalanceAndBonus’).then(function(res){
+try{var d=JSON.parse(res.body);if(d.retcode===0) msgs.push(‘Balance: ‘+d.result.balance+’ Coins’);else msgs.push(’Query err: ‘+d.retmsg);}
+catch(e){msgs.push(‘Query parse error’);}
+return fetchApi(‘checkIn’);
+}).then(function(res){
+try{var d=JSON.parse(res.body);if(d.retcode===0) msgs.push(‘CheckIn OK: ‘+((d.result&&d.result.bonusHint)||d.retmsg||’’).replace(/\n/g,’ ’));else msgs.push(‘CheckIn err: ‘+d.retmsg);}
+catch(e){msgs.push(‘CheckIn parse error’);}
+return doVideoLoop(MAX_VIDEO);
+}).then(function(){return fetchApi(‘queryBalanceAndBonus’);}).then(function(res){
+try{var d=JSON.parse(res.body);if(d.retcode===0) msgs.push(‘New balance: ‘+d.result.balance+’ Coins’);}
+catch(e){}
+return msgs.join(’\n’);
+}).catch(function(err){
+msgs.push(‘Error: ‘+(err.error||String(err)));
+return msgs.join(’\n’);
+});
+}
+
+// ––––– main –––––
+if(typeof $request !== ‘undefined’ && $request) {
+var paramsRaw  = parseRawQuery($request.url);
+var headersMap = {};
+Object.keys($request.headers||{}).forEach(function(k){headersMap[k]=$request.headers[k];});
+var baseUA = ‘’;
+Object.keys(headersMap).forEach(function(k){if(k.toLowerCase()===‘user-agent’) baseUA=headersMap[k];});
+
+var store   = loadStore();
+var fp      = fingerprintOf(paramsRaw);
+var now     = Date.now();
+var existed = !!store.accounts[fp];
+var uaSeed  = existed ? store.accounts[fp].uaSeed : store.order.length;
+var alias   = existed ? store.accounts[fp].alias  : (’Account ’+(store.order.length+1));
+
+store.accounts[fp] = {
+id:fp, alias:alias, uaSeed:uaSeed, baseUA:baseUA,
+capture:{url:$request.url, paramsRaw:paramsRaw, headers:headersMap},
+createdAt: existed ? store.accounts[fp].createdAt : now,
+updatedAt: now
 };
-// Surge 持久化：$persistentStore.write / read（替换 QX 的 $prefs）
-$persistentStore.write(JSON.stringify(capture), ckKey);
-notifyDone(‘✅ 参数抓取成功’, ‘已保存请求头+参数’);
-console.log(`【${scriptName}】capture:\n${JSON.stringify(capture, null, 2)}`);
-// Surge http-request 脚本用 $done({}) 放行原始请求
+if(!existed) store.order.push(fp);
+saveStore(store);
+
+var total = store.order.length;
+notify(existed ? ‘Account updated’ : ‘New account saved’, alias+’ (id:’+fp+’)\nTotal: ‘+total);
+console.log(’[’+scriptName+’] ‘+(existed?‘update’:‘add’)+’ ’+fp);
 $done({});
 
 } else {
-// ── 定时任务模式（cron 触发）──
-const raw = $persistentStore.read(ckKey);
-if (!raw) {
-notifyDone(‘⚠️ 未抓到参数’, ‘先打开 PingMe 触发一次’);
+var store = loadStore();
+var ids   = store.order.filter(function(id){return store.accounts[id];});
+if(!ids.length) {
+notify(‘No accounts’, ‘Open PingMe app first to capture credentials’);
 $done();
 } else {
-let capture;
-try { capture = JSON.parse(raw); } catch (e) {
-notifyDone(‘⚠️ 参数损坏’, ‘请重新打开 PingMe 抓参’);
-$done();
-// 直接 return 以防继续执行
-throw e;
-}
-
-```
-const headers = buildHeaders(capture);
-const msgs = [];
-
-function doVideoLoop(count) {
-  let i = 0;
-  function next() {
-    if (i >= count) return Promise.resolve();
-    return new Promise(resolve => {
-      setTimeout(() => {
-        i++;
-        fetchApi('videoBonus', capture, headers).then(res => {
-          try {
-            const d = JSON.parse(res.body);
-            if (d.retcode === 0) {
-              msgs.push(`🎬 视频${i}：+${d.result?.bonus || '?'} Coins`);
-              resolve(next());
-            } else {
-              msgs.push(`⏸ 视频${i}：${d.retmsg}`);
-              resolve();
-            }
-          } catch (e) {
-            msgs.push(`❌ 视频${i}：解析失败`);
-            resolve();
-          }
-        }).catch(err => {
-          msgs.push(`❌ 视频${i}：${err.error || '请求失败'}`);
-          resolve();
-        });
-      }, i === 0 ? 1500 : VIDEO_DELAY);
-    });
-  }
-  return next();
-}
-
-fetchApi('queryBalanceAndBonus', capture, headers).then(res => {
-  try {
-    const d = JSON.parse(res.body);
-    if (d.retcode === 0) msgs.push(`💰 余额：${d.result.balance} Coins`);
-    else msgs.push(`⚠️ 查询：${d.retmsg}`);
-  } catch (e) {
-    msgs.push('❌ 查询：解析失败');
-  }
-  return fetchApi('checkIn', capture, headers);
-}).then(res => {
-  try {
-    const d = JSON.parse(res.body);
-    if (d.retcode === 0) msgs.push(`✅ 签到：${(d.result?.bonusHint || d.retmsg || '').replace(/\n/g, ' ')}`);
-    else msgs.push(`⚠️ 签到：${d.retmsg}`);
-  } catch (e) {
-    msgs.push('❌ 签到：解析失败');
-  }
-  return doVideoLoop(MAX_VIDEO);
-}).then(() => {
-  return fetchApi('queryBalanceAndBonus', capture, headers);
-}).then(res => {
-  try {
-    const d = JSON.parse(res.body);
-    if (d.retcode === 0) msgs.push(`💰 最新余额：${d.result.balance} Coins`);
-  } catch (e) {}
-  notifyDone('🎉 任务完成', msgs.join('\n'));
-  $done();
-}).catch(err => {
-  notifyDone('❌ 任务失败', msgs.join('\n') + '\n' + (err.error || String(err)));
-  $done();
+var total   = ids.length;
+var results = [];
+var chain   = Promise.resolve();
+ids.forEach(function(id, idx){
+chain = chain
+.then(function(){return runAccount(store.accounts[id], idx, total);})
+.then(function(text){results.push(text);})
+.then(function(){return idx < ids.length-1 ? sleep(ACCOUNT_GAP) : null;});
 });
-```
-
+chain.then(function(){
+notify(‘All done (’+total+’ accounts)’, results.join(’\n—\n’));
+$done();
+}).catch(function(err){
+notify(‘Task error’, results.join(’\n—\n’)+’\n’+(err.error||String(err)));
+$done();
+});
 }
 }
