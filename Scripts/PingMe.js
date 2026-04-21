@@ -6,7 +6,7 @@
 
 [Script]
 PingMe抓包 = type=http-request,pattern=^https://api.pingmeapp.net/app/queryBalanceAndBonus,requires-body=0,max-size=0,script-path=PingMe_Surge.js
-PingMe签到 = type=cron,cronexp=“30 8,20 * * *”,wake-system=1,script-path=PingMe_Surge.js
+PingMe签到 = type=cron,cronexp=30 8,20 * * *,wake-system=1,script-path=PingMe_Surge.js
 
 [MITM]
 hostname = %APPEND% api.pingmeapp.net
@@ -344,10 +344,10 @@ chain = chain.then(() => runAccount(store.accounts[id], idx, total))
 .then(() => idx < ids.length - 1 ? sleep(ACCOUNT_GAP) : null);
 });
 chain.then(() => {
-notify(`🎉 全部完成 (${total}个账号)`, results.join(’\n———\n’));
+notify(`🎉 全部完成 (${total}个账号)`, results.join(’\n—\n’));
 $done();
 }).catch(err => {
-notify(‘❌ 任务异常’, results.join(’\n———\n’) + ‘\n’ + (err.error || String(err)));
+notify(‘❌ 任务异常’, results.join(’\n—\n’) + ‘\n’ + (err.error || String(err)));
 $done();
 });
 }
