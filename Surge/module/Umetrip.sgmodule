@@ -1,0 +1,8 @@
+#!name=航旅纵横去广告
+#!desc=航旅纵横去广告
+
+[URL Rewrite]
+^https:\/\/oss\.umetrip\.com\/fs\/advert\/polite reject
+
+[MITM]
+hostname = %APPEND% oss.umetrip.com
