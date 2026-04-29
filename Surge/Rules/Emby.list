@@ -5,6 +5,25 @@
 # DOMAIN-SUFFIX: 42
 # PROCESS-NAME: 0
 # TOTAL: 50
+
+#SNTP
+DOMAIN-SUFFIX,cn2gias.uk
+#乐蛙
+DOMAIN-SUFFIX,taotu.ink
+#冰镇西瓜
+DOMAIN-SUFFIX,chilledmelon.com
+#Youno
+DOMAIN-SUFFIX,younoyes.com
+#常温西瓜
+DOMAIN-SUFFIX,yuntv.de
+#Peach
+DOMAIN-SUFFIX,embymv.link
+#鸡窝
+DOMAIN-SUFFIX,sadchicktv.com
+#小虾米
+
+
+
 DOMAIN-SUFFIX,emby.wtf
 DOMAIN-SUFFIX,term.wtf
 DOMAIN-SUFFIX,emos.best
@@ -13,7 +32,7 @@ DOMAIN-SUFFIX,handoumedia.top
 DOMAIN-SUFFIX,meowfly.de
 DOMAIN-SUFFIX,coemn.com
 DOMAIN-SUFFIX,embycc.link
-DOMAIN-SUFFIX,cn2gias.uk
+
 DOMAIN-SUFFIX,3767483.xyz
 DOMAIN-SUFFIX,feiniu.lol
 DOMAIN-SUFFIX,kongcheng666.dpdns.org
@@ -45,7 +64,7 @@ DOMAIN-SUFFIX,nice66666.cc
 DOMAIN-SUFFIX,28.al
 DOMAIN-SUFFIX,startspoint.com
 DOMAIN-SUFFIX,lyezi.cc
-DOMAIN-SUFFIX,younoyes.com
+
 DOMAIN-SUFFIX,ucloudhost.top
 DOMAIN-SUFFIX,lily.lat
 DOMAIN-SUFFIX,sylu.net
@@ -53,10 +72,10 @@ DOMAIN-SUFFIX,webn.cc
 DOMAIN-SUFFIX,yvle.de
 DOMAIN-SUFFIX,emby.yun
 DOMAIN-SUFFIX,zhezhi.art
-DOMAIN-SUFFIX,sadchicktv.com
+
 DOMAIN-SUFFIX,vban.xyz
 DOMAIN-SUFFIX,kingemby.xyz
-DOMAIN-SUFFIX,yuntv.de
+
 DOMAIN-SUFFIX,ash.yt
 DOMAIN-SUFFIX,liminalnet.com
 DOMAIN-SUFFIX,echoflix.de
@@ -73,4 +92,4 @@ DOMAIN-KEYWORD,gousen
 DOMAIN-KEYWORD,101514
 DOMAIN-KEYWORD,nangua
 DOMAIN-KEYWORD,772111
-DOMAIN-KEYWORD,embymv
+
