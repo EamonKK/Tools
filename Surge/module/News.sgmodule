@@ -3,31 +3,21 @@
 #!author=可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/FinanceNews.png
 #!openUrl=https://apps.apple.com/app/id738227477
-#!tag=去广告
-#!loon_version=3.2.4(787)
 #!homepage=https://hub.kelee.one
-#!date=2026-05-14 23:18:27
 
-[Body Rewrite]
-http-response-jq ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/kvconfig\/items\/tabbarconfig1$ '.data.items |= [.[] | select(.key == "news" or .key == "live")]'
-http-response-jq ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/ 'delpaths([["data","recommend_vip_img_uri"]])'
-http-response-jq ^https:\/\/api-one-wscn\.awtmt\.com\/\/apiv1\/kvconfig\/items\/membersrights$ 'delpaths([["data","vip_article"]])'
+[Script]
+华尔街见闻-精简底栏 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/kvconfig\/items\/tabbarconfig1$,requires-body=1,max-size=0,script-path=FinanceNews_tabbar.js,script-update-interval=0
+华尔街见闻-移除文末推荐 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/,requires-body=1,max-size=0,script-path=FinanceNews_articles.js,script-update-interval=0
+华尔街见闻-移除会员权益 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/\/apiv1\/kvconfig\/items\/membersrights$,requires-body=1,max-size=0,script-path=FinanceNews_vip.js,script-update-interval=0
 
 [Map Local]
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/advertising\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/kvconfig\/items\/search_keywords_wscnvip$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/search\/hotsearch\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/hot\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/wallstreetcn\.com\/app-faas\/coupon\/user\/search\/popup$ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/lives\/relateddata\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/relateddata\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
-
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/carousel\/information-flow\? data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 [MITM]
