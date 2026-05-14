@@ -1,7 +1,7 @@
 /**
  * Holivator 自动抓取签到 Cookie 脚本
  * 拦截签到请求，自动保存所有 Cookie 到 persistentStore
- * 
+ *
  * ========== Surge 配置文件添加内容 ==========
  *
  * [Script]
@@ -19,13 +19,6 @@ for (const key in headers) {
   lowerHeaders[key.toLowerCase()] = headers[key];
 }
 
-// 提取 Authorization Bearer Token
-const authorization = lowerHeaders["authorization"] || "";
-const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
-
-// 提取 x-csrf-token
-const csrfToken = lowerHeaders["x-csrf-token"] || "";
-
 // 从 Cookie 字符串中提取指定值
 function extractCookie(cookieStr, name) {
   const match = cookieStr.match(new RegExp(name + "=([^;\\s]+)"));
@@ -33,14 +26,18 @@ function extractCookie(cookieStr, name) {
 }
 
 const cookieStr = lowerHeaders["cookie"] || "";
-const cfClearance = extractCookie(cookieStr, "cf_clearance");
 
-// 也从 cookie 中提取 access_token 和 csrf_token 作为备用
-const accessTokenFromCookie = extractCookie(cookieStr, "access_token");
-const csrfTokenFromCookie = extractCookie(cookieStr, "csrf_token");
+// access_token 优先从 Authorization 头取，取不到就从 Cookie 里取
+const authorization = lowerHeaders["authorization"] || "";
+const tokenFromAuth = authorization.replace(/^Bearer\s+/i, "").trim();
+const tokenFromCookie = extractCookie(cookieStr, "access_token");
+const finalAccessToken = tokenFromAuth || tokenFromCookie;
 
-const finalAccessToken = accessToken || accessTokenFromCookie;
-const finalCsrfToken = csrfToken || csrfTokenFromCookie;
+// csrf_token 从请求头或 Cookie 取
+const csrfToken = lowerHeaders["x-csrf-token"] || extractCookie(cookieStr, "csrf_token") || "";
+
+// cf_clearance 从 Cookie 取
+const cfClearance = extractCookie(cookieStr, "cf_clearance") || "";
 
 // 保存到 persistentStore
 let saved = [];
@@ -50,8 +47,8 @@ if (finalAccessToken) {
   saved.push("access_token");
 }
 
-if (finalCsrfToken) {
-  $persistentStore.write(finalCsrfToken, "holi_csrf_token");
+if (csrfToken) {
+  $persistentStore.write(csrfToken, "holi_csrf_token");
   saved.push("csrf_token");
 }
 
