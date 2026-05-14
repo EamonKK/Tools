@@ -1,50 +1,40 @@
 /**
- * Holivator 自动抓取 Cookie 脚本
- * 拦截登录响应，自动保存 Cookie 到 persistentStore
+ * Holivator 自动抓取签到 Cookie 脚本
+ * 拦截签到请求，自动保存所有 Cookie 到 persistentStore
  * 
  * ========== Surge 配置文件添加内容 ==========
  *
  * [Script]
- * holivator-cookie = type=http-response,pattern=^https:\/\/holivator\.de\/api\/v1\/auth\/login,requires-body=1,script-path=holivator_cookie.js,script-update-interval=0
- * holivator-checkin = type=cron,cronexp="0 8 * * *",wake-up=1,script-path=holivator_checkin.js,script-update-interval=0
+ * holivator-save-cookie = type=http-request,pattern=^https:\/\/holivator\.de\/api\/v1\/user\/checkin,script-path=holivator_save_cookie.js,script-update-interval=0
  *
  * [MITM]
  * hostname = %APPEND% holivator.de
  */
 
-// 从响应 Header 中提取 Cookie
-const headers = $response.headers;
-const setCookie = headers["Set-Cookie"] || headers["set-cookie"] || "";
+const headers = $request.headers;
 
-// 将所有 set-cookie 合并成一个字符串处理
-const cookieStr = Array.isArray(setCookie) ? setCookie.join("; ") : setCookie;
+// 提取 Authorization Bearer Token
+const authorization = headers["authorization"] || headers["Authorization"] || "";
+const accessToken = authorization.replace("Bearer ", "").trim();
 
-// 提取各个 Cookie 值
-function extractCookie(str, name) {
-  const match = str.match(new RegExp(name + "=([^;,\\s]+)"));
+// 提取 x-csrf-token
+const csrfToken = headers["x-csrf-token"] || headers["X-Csrf-Token"] || "";
+
+// 从 Cookie 字符串中提取指定值
+function extractCookie(cookieStr, name) {
+  const match = cookieStr.match(new RegExp(name + "=([^;\\s]+)"));
   return match ? match[1] : null;
 }
 
-const accessToken = extractCookie(cookieStr, "access_token");
-const csrfToken = extractCookie(cookieStr, "csrf_token");
+const cookieStr = headers["cookie"] || headers["Cookie"] || "";
 const cfClearance = extractCookie(cookieStr, "cf_clearance");
 
-// 尝试从响应 body 中提取 token（有些网站放在 body 里）
-let bodyToken = null;
-try {
-  const body = JSON.parse($response.body);
-  bodyToken = body?.data?.token || body?.token || body?.access_token || null;
-} catch (e) {}
-
-// 保存 Cookie
+// 保存到 persistentStore
 let saved = [];
 
 if (accessToken) {
   $persistentStore.write(accessToken, "holi_access_token");
   saved.push("access_token");
-} else if (bodyToken) {
-  $persistentStore.write(bodyToken, "holi_access_token");
-  saved.push("access_token(body)");
 }
 
 if (csrfToken) {
@@ -60,15 +50,10 @@ if (cfClearance) {
 if (saved.length > 0) {
   $notification.post(
     "Holivator",
-    "✅ Cookie 已自动保存",
+    "✅ Cookie 已自动更新",
     `已保存: ${saved.join(", ")}`
-  );
-} else {
-  $notification.post(
-    "Holivator",
-    "⚠️ Cookie 未能自动获取",
-    "请检查登录是否成功，或手动运行 setup 脚本"
   );
 }
 
-$done({ response: $response });
+// 放行原始请求，不影响正常签到
+$done({ request: $request });
