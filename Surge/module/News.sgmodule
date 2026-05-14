@@ -7,8 +7,8 @@
 
 [Script]
 华尔街见闻-精简底栏 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/kvconfig\/items\/tabbarconfig1$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Loon/Scripts/NewDL.js,script-update-interval=0
-华尔街见闻-移除文末推荐 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Loon/Scripts/NewVIP.js,script-update-interval=0
-华尔街见闻-移除会员权益 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/\/apiv1\/kvconfig\/items\/membersrights$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Loon/Scripts/NewVIP_.js,script-update-interval=0
+华尔街见闻-移除文末推荐 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/content\/articles\/,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Loon/Scripts/NewsVIP.js,script-update-interval=0
+华尔街见闻-移除会员权益 = type=http-response,pattern=^https:\/\/api-one-wscn\.awtmt\.com\/\/apiv1\/kvconfig\/items\/membersrights$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Loon/Scripts/NewsVIP_.js,script-update-interval=0
 
 [Map Local]
 ^https:\/\/api-one-wscn\.awtmt\.com\/apiv1\/advertising\/ data-type=text data="{}" status-code=200 header="Content-Type:application/json"
