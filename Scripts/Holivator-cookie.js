@@ -1,22 +1,21 @@
 /**
- * Holivator 自动抓取签到 Cookie 脚本
- * 拦截签到请求，自动保存所有 Cookie 到 persistentStore
+ * Holivator 自动抓取 Cookie 脚本
+ * 拦截登录响应，自动保存所有 Cookie 到 persistentStore
  *
  * ========== Surge 配置文件添加内容 ==========
  *
  * [Script]
- * holivator-save-cookie = type=http-request,pattern=^https:\/\/holivator\.de\/api\/v1\/user\/checkin,script-path=holivator_save_cookie.js,script-update-interval=0
+ * holivator-cookie = type=http-response,pattern=^https:\/\/holivator\.de\/api\/v1\/auth\/login,requires-body=1,script-path=holivator_cookie.js,script-update-interval=0
+ * holivator-checkin = type=cron,cronexp="0 8 * * *",wake-up=1,script-path=holivator_checkin.js,script-update-interval=0
  *
  * [MITM]
  * hostname = %APPEND% holivator.de
  */
 
-const headers = $request.headers;
-
-// 统一转为小写 key 方便匹配
+// 统一转为小写 key
 const lowerHeaders = {};
-for (const key in headers) {
-  lowerHeaders[key.toLowerCase()] = headers[key];
+for (const key in $response.headers) {
+  lowerHeaders[key.toLowerCase()] = $response.headers[key];
 }
 
 // 从 Cookie 字符串中提取指定值
@@ -25,25 +24,32 @@ function extractCookie(cookieStr, name) {
   return match ? match[1] : null;
 }
 
-const cookieStr = lowerHeaders["cookie"] || "";
+// set-cookie 可能是数组或字符串
+const rawCookie = lowerHeaders["set-cookie"] || "";
+const cookieStr = Array.isArray(rawCookie) ? rawCookie.join("; ") : rawCookie;
 
-// access_token 优先从 Authorization 头取，取不到就从 Cookie 里取
-const authorization = lowerHeaders["authorization"] || "";
-const tokenFromAuth = authorization.replace(/^Bearer\s+/i, "").trim();
-const tokenFromCookie = extractCookie(cookieStr, "access_token");
-const finalAccessToken = tokenFromAuth || tokenFromCookie;
+// 从响应 body 提取 access_token
+let accessToken = "";
+try {
+  const body = JSON.parse($response.body);
+  accessToken = body?.data?.token
+    || body?.data?.access_token
+    || body?.token
+    || body?.access_token
+    || extractCookie(cookieStr, "access_token")
+    || "";
+} catch (e) {
+  accessToken = extractCookie(cookieStr, "access_token") || "";
+}
 
-// csrf_token 从请求头或 Cookie 取
-const csrfToken = lowerHeaders["x-csrf-token"] || extractCookie(cookieStr, "csrf_token") || "";
-
-// cf_clearance 从 Cookie 取
+const csrfToken = extractCookie(cookieStr, "csrf_token") || "";
 const cfClearance = extractCookie(cookieStr, "cf_clearance") || "";
 
 // 保存到 persistentStore
 let saved = [];
 
-if (finalAccessToken) {
-  $persistentStore.write(finalAccessToken, "holi_access_token");
+if (accessToken) {
+  $persistentStore.write(accessToken, "holi_access_token");
   saved.push("access_token");
 }
 
@@ -60,10 +66,15 @@ if (cfClearance) {
 if (saved.length > 0) {
   $notification.post(
     "Holivator",
-    "✅ Cookie 已自动更新",
+    "✅ Cookie 已自动保存",
     `已保存: ${saved.join(", ")}`
+  );
+} else {
+  $notification.post(
+    "Holivator",
+    "⚠️ Cookie 未能获取",
+    "请检查登录是否成功"
   );
 }
 
-// 放行原始请求，不影响正常签到
-$done({ request: $request });
+$done({ response: $response });
