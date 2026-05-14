@@ -1,31 +1,29 @@
 /**
  * Holivator 每日签到脚本
  * 
- * 使用方法：
- * 1. 将下方 [配置区域] 填入你自己的 token 和 cookie
- * 2. 在 Surge 配置文件中添加相关配置
+ * ========== 首次使用：先运行 holivator_setup.js 存入 Cookie ==========
  * 
  * ========== Surge 配置文件添加内容 ==========
- * 
+ *
  * [Script]
  * holivator-checkin = type=cron,cronexp="0 8 * * *",wake-up=1,script-path=holivator_checkin.js,script-update-interval=0
- * 
+ *
  * [MITM]
- * hostname = holivator.de
+ * hostname = %APPEND% holivator.de
  */
 
-// ========== 配置区域（必须修改！）==========
+const ACCESS_TOKEN = $persistentStore.read("holi_access_token");
+const CSRF_TOKEN = $persistentStore.read("holi_csrf_token");
+const CF_CLEARANCE = $persistentStore.read("holi_cf_clearance");
 
-const ACCESS_TOKEN = "填入你的access_token";  // cookie 中 access_token= 后面的值
-const CSRF_TOKEN = "填入你的csrf_token";       // cookie 中 csrf_token= 后面的值
-const CF_CLEARANCE = "填入你的cf_clearance";   // cookie 中 cf_clearance= 后面的值
-
-// ==========================================
+if (!ACCESS_TOKEN || !CSRF_TOKEN || !CF_CLEARANCE) {
+  $notification.post("Holivator 签到", "⚠️ 未配置 Cookie", "请先运行 holivator_setup.js");
+  $done();
+}
 
 const BASE_URL = "https://holivator.de";
 
 const headers = {
-  "authority": "holivator.de",
   "accept": "*/*",
   "sec-fetch-site": "same-origin",
   "origin": BASE_URL,
@@ -37,7 +35,6 @@ const headers = {
   "sec-fetch-dest": "empty",
   "authorization": "Bearer " + ACCESS_TOKEN,
   "accept-language": "zh-CN,zh-Hans;q=0.9",
-  "accept-encoding": "gzip, deflate, br, zstd",
   "cookie": `access_token=${ACCESS_TOKEN}; cf_clearance=${CF_CLEARANCE}; csrf_token=${CSRF_TOKEN}`
 };
 
@@ -63,6 +60,8 @@ $httpClient.post({
       );
     } else if (response.status === 400) {
       $notification.post("Holivator 签到", "📅 今日已签到", "无需重复签到");
+    } else if (response.status === 401) {
+      $notification.post("Holivator 签到", "🔑 Cookie 已过期", "请重新运行 setup 脚本更新 Cookie");
     } else {
       $notification.post(
         "Holivator 签到",
