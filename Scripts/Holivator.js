@@ -60,7 +60,7 @@ $httpClient.post({
         "✅ 签到成功！",
         points ? `获得 ${points} 积分` : "签到完成"
       );
-    } else if (response.status === 400) {
+    } else if (response.status === 400 || response.status === 403) {
       $notification.post("Holivator 签到", "📅 今日已签到", "无需重复签到");
     } else if (response.status === 401) {
       $notification.post("Holivator 签到", "🔑 Cookie 已过期", "请重新打开 holivator.de 自动更新");
