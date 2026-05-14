@@ -13,12 +13,18 @@
 
 const headers = $request.headers;
 
+// 统一转为小写 key 方便匹配
+const lowerHeaders = {};
+for (const key in headers) {
+  lowerHeaders[key.toLowerCase()] = headers[key];
+}
+
 // 提取 Authorization Bearer Token
-const authorization = headers["authorization"] || headers["Authorization"] || "";
-const accessToken = authorization.replace("Bearer ", "").trim();
+const authorization = lowerHeaders["authorization"] || "";
+const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
 
 // 提取 x-csrf-token
-const csrfToken = headers["x-csrf-token"] || headers["X-Csrf-Token"] || "";
+const csrfToken = lowerHeaders["x-csrf-token"] || "";
 
 // 从 Cookie 字符串中提取指定值
 function extractCookie(cookieStr, name) {
@@ -26,19 +32,26 @@ function extractCookie(cookieStr, name) {
   return match ? match[1] : null;
 }
 
-const cookieStr = headers["cookie"] || headers["Cookie"] || "";
+const cookieStr = lowerHeaders["cookie"] || "";
 const cfClearance = extractCookie(cookieStr, "cf_clearance");
+
+// 也从 cookie 中提取 access_token 和 csrf_token 作为备用
+const accessTokenFromCookie = extractCookie(cookieStr, "access_token");
+const csrfTokenFromCookie = extractCookie(cookieStr, "csrf_token");
+
+const finalAccessToken = accessToken || accessTokenFromCookie;
+const finalCsrfToken = csrfToken || csrfTokenFromCookie;
 
 // 保存到 persistentStore
 let saved = [];
 
-if (accessToken) {
-  $persistentStore.write(accessToken, "holi_access_token");
+if (finalAccessToken) {
+  $persistentStore.write(finalAccessToken, "holi_access_token");
   saved.push("access_token");
 }
 
-if (csrfToken) {
-  $persistentStore.write(csrfToken, "holi_csrf_token");
+if (finalCsrfToken) {
+  $persistentStore.write(finalCsrfToken, "holi_csrf_token");
   saved.push("csrf_token");
 }
 
