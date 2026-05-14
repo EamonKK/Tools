@@ -1,6 +1,6 @@
 /**
  * Holivator 自动抓取 Cookie 脚本
- * 拦截签到状态请求，自动保存所有 Cookie 到 persistentStore
+ * 拦截 checkin/status 请求，自动保存所有 Cookie 到 persistentStore
  *
  * ========== Surge 配置文件添加内容 ==========
  *
@@ -17,17 +17,14 @@ function extractCookie(cookieStr, name) {
   return match ? match[1] : null;
 }
 
-// 统一转为小写 key
 const lowerHeaders = {};
 for (const key in $request.headers) {
   lowerHeaders[key.toLowerCase()] = $request.headers[key];
 }
 
-// 从 Authorization 提取 access_token
 const authorization = lowerHeaders["authorization"] || "";
 const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
 
-// 从 cookie 提取 cf_clearance 和 csrf_token
 const cookieStr = lowerHeaders["cookie"] || "";
 const cfClearance = extractCookie(cookieStr, "cf_clearance") || "";
 const csrfToken = extractCookie(cookieStr, "csrf_token") || "";
