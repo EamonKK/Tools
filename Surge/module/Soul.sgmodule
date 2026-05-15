@@ -4,27 +4,6 @@
 #!icon=https://raw.githubusercontent.com/mist-whisper/Icon/master/App_icon/120px/Soul.png
 #!system=ios
 
-[URL Rewrite]
-# 去除聊天界面再遇见
-^https:\/\/api-chat\.soulapp\.cn\/chat\/entrance\/first - reject
-# 去除通讯录右下角机器人图标
-^https:\/\/api-chat\.soulapp\.cn\/addressBook\/showBubblingEnter - reject
-# 去除首次私聊打开去除顶部聊天信息卡片
-^https:\/\/api-user\.soulapp\.cn\/user\/matchRelation\/getChatCard - reject
-# 去除表情推荐
-^https:\/\/api-chat\.soulapp\.cn\/chat\/interact\/getEmojiList - reject
-# 去除我的页面soul币活动推荐
-^https:\/\/increase-openapi\.soulapp\.cn\/increase\/fission\/getHomePageRedIcon - reject
-# 去除首次私聊打开星球交汇小卡片
-^https:\/\/api-chat\.soulapp\.cn\/similar\/post\/intersect\/trigger - reject
-# 去除首次打开私聊界面底部瞬间表情推荐
-^https:\/\/api-chat\.soulapp\.cn\/chat\/guide\/defaultWord - reject
-# 去除聊天输入文字时的gif表情推荐
-^https:\/\/api-chat\.soulapp\.cn\/chat\/emoji\/recommend - reject
-# 去除私聊瞬间小横幅
-^https:\/\/api-a\.soulapp\.cn\/shara\/app\/url - reject
-# 私聊快捷菜单
-^https:\/\/api-chat\.soulapp\.cn\/chat\/quick\/menu - reject
 
 [Map Local]
 # 广告下发
