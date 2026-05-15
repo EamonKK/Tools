@@ -4,22 +4,19 @@
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/JD.png
 #!openUrl=https://apps.apple.com/app/id414245413
 #!tag=去广告
-#!loon_version=3.2.4(787)
 #!homepage=https://github.com/luestr/ProxyResource/blob/main/README.md
 #!date=2025-05-13 15:17:08
 
 [Rule]
-URL-REGEX,"^http:\/\/\w{32}\.jddebug\.com\/diagnose\?",REJECT
-
-[Body Rewrite]
-http-response-jq ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig 'if (getpath(["data","JDMessage","socketmonitor"]) | has("isSocketEstablishedAhead")) then (setpath(["data","JDMessage","socketmonitor","isSocketEstablishedAhead"]; 0)) else . end'
-http-response-jq ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig 'if (getpath(["data","JDMessage","socketmonitor"]) | has("isSocketReport")) then (setpath(["data","JDMessage","socketmonitor","isSocketReport"]; 0)) else . end'
-http-response-jq ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig 'if (getpath(["data","JDHttpToolKit","httpdns"]) | has("httpdns")) then (setpath(["data","JDHttpToolKit","httpdns","httpdns"]; 0)) else . end'
+URL-REGEX,^http:\/\/\w{32}\.jddebug\.com\/diagnose\?,REJECT
 
 [Map Local]
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(searchBoxWord|stationPullService|uniformRecommend[06]) data-type=text data="{}" status-code=200 header="Content-Type:application/json"
 
 [Script]
+# 转换自 Loon http-response-jq（三条规则合并为一个脚本）
+京东basicConfig修改 = type=http-response, pattern=^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig, script-path=JD_basicConfig.js, requires-body=true, max-size=524288
+
 移除京东广告 = type=http-response, pattern=^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome), script-path=https://kelee.one/Resource/JavaScript/JD/JD_remove_ads.js, requires-body=true
 
 [MITM]
