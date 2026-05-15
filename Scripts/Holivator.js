@@ -15,7 +15,6 @@ const BASE_URL = 'https://holivator.de';
 const USERNAME_KEY = 'holi_username';
 const PASSWORD_KEY = 'holi_password';
 
-// ========== 环境适配 ==========
 const Env = (() => {
   const isQX = typeof $task !== 'undefined' && typeof $prefs !== 'undefined';
   const isSurge = typeof $httpClient !== 'undefined' && typeof $persistentStore !== 'undefined' && typeof $loon === 'undefined';
@@ -74,6 +73,11 @@ function parseBody(body) {
   try { return JSON.parse(body || '{}'); } catch(e) { return {}; }
 }
 
+function extractCookie(cookieStr, name) {
+  const match = cookieStr.match(new RegExp(name + '=([^;,\\s]+)'));
+  return match ? match[1] : '';
+}
+
 function maskAccount(v) {
   const s = String(v || '').trim();
   if (!s) return '';
@@ -81,7 +85,6 @@ function maskAccount(v) {
   return s.slice(0, 2) + '***' + s.slice(-2);
 }
 
-// ========== 主流程 ==========
 let finished = false;
 
 function finish(title, subTitle, message) {
@@ -99,27 +102,45 @@ if (!username || !password) {
 } else {
   Env.notify('Holivator 签到', '开始登录签到', `账号：${maskAccount(username)}`);
 
-  // 第一步：登录
+  // 第一步：先获取 csrf_token（访问登录页）
   Env.request({
-    url: `${BASE_URL}/api/v1/auth/login`,
-    method: 'POST',
+    url: `${BASE_URL}/login`,
+    method: 'GET',
     headers: {
-      'content-type': 'application/json',
-      'accept': 'application/json',
-      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
-      'origin': BASE_URL,
-      'referer': `${BASE_URL}/login`
-    },
-    body: JSON.stringify({ username, password })
+      'accept': 'text/html',
+      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1'
+    }
   }).then(resp => {
-    // 从 set-cookie 提取 token
+    // 尝试从登录页响应里拿 csrf_token
     const cookies = resp.headers['Set-Cookie'] || resp.headers['set-cookie'] || '';
     const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies;
-    const tokenMatch = cookieStr.match(/access_token=([^;,\s]+)/);
-    const csrfMatch = cookieStr.match(/csrf_token=([^;,\s]+)/);
+    const freshCsrf = extractCookie(cookieStr, 'csrf_token');
+    if (freshCsrf) Env.write(freshCsrf, 'holi_csrf_token');
 
-    let accessToken = tokenMatch ? tokenMatch[1] : '';
-    let csrfToken = csrfMatch ? csrfMatch[1] : '';
+    // 第二步：登录
+    const csrfForLogin = freshCsrf || Env.read('holi_csrf_token') || '';
+    return Env.request({
+      url: `${BASE_URL}/api/v1/auth/login`,
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
+        'origin': BASE_URL,
+        'referer': `${BASE_URL}/login`,
+        'x-csrf-token': csrfForLogin,
+        'cookie': `csrf_token=${csrfForLogin}; cf_clearance=${Env.read('holi_cf_clearance') || ''}`
+      },
+      body: JSON.stringify({ username, password })
+    });
+  }).then(resp => {
+    if (!resp) return finish('Holivator 签到', '❌ 登录失败', '无响应');
+
+    const cookies = resp.headers['Set-Cookie'] || resp.headers['set-cookie'] || '';
+    const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+
+    let accessToken = extractCookie(cookieStr, 'access_token');
+    let csrfToken = extractCookie(cookieStr, 'csrf_token') || Env.read('holi_csrf_token') || '';
     const cfClearance = Env.read('holi_cf_clearance') || '';
 
     // 从 body 提取备用
@@ -129,13 +150,13 @@ if (!username || !password) {
     }
 
     if (!accessToken) {
-      return finish('Holivator 签到', '❌ 登录失败', '未获取到 token，请检查账号密码');
+      return finish('Holivator 签到', '❌ 登录失败', `未获取到 token\n${resp.body}`);
     }
 
     Env.write(accessToken, 'holi_access_token');
     if (csrfToken) Env.write(csrfToken, 'holi_csrf_token');
 
-    // 第二步：签到
+    // 第三步：签到
     return Env.request({
       url: `${BASE_URL}/api/v1/user/checkin`,
       method: 'POST',
