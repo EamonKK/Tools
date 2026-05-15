@@ -11,7 +11,6 @@
 
 ^https:\/\/47\.110\.187\.87\/winterfell\/(?:v2\/)?getIpByDomain data-type=text data="{}" status-code=200
 
-
 # 去除青少年弹窗
 ^https:\/\/api-account\.soulapp\.cn\/teenager\/config data-type=text data="{}" status-code=200
 
