@@ -1,0 +1,25 @@
+{
+  "id": "holivator",
+  "name": "Holivator 签到",
+  "desc": "Holivator 每日自动签到配置",
+  "author": "",
+  "icon": "https://holivator.de/favicon.ico",
+  "keys": [
+    "holi_username",
+    "holi_password"
+  ],
+  "settings": [
+    {
+      "id": "holi_username",
+      "name": "用户名",
+      "type": "text",
+      "desc": "Holivator 登录用户名"
+    },
+    {
+      "id": "holi_password",
+      "name": "密码",
+      "type": "text",
+      "desc": "Holivator 登录密码"
+    }
+  ]
+}
