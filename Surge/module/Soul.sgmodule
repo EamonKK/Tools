@@ -1,13 +1,8 @@
 #!name=Soul去广告
-#!desc=移除广告和精简页面。插件详情页选择分流即可更改IP显示，部分功能可自行开关。
-#!author=ZenmoFeiShi[https://github.com/ZenmoFeiShi], RuCu6[https://github.com/RuCu6], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md], kelv1n1n[https://github.com/kelv1n1n], wish[https://raw.githubusercontent.com/mist-whisper]
+#!desc=移除广告和精简页面
+#!author=ZenmoFeiShi, RuCu6, 可莉, kelv1n1n, wish
 #!icon=https://raw.githubusercontent.com/mist-whisper/Icon/master/App_icon/120px/Soul.png
-#!tag=去广告
 #!system=ios
-#!system_version=15
-#!loon_version=3.2.9(837)
-#!homepage=https://github.com/mist-whisper/Loon/blob/master/README.md
-#!date=2025-05-04 23:25:00
 
 [URL Rewrite]
 # 去除聊天界面再遇见
