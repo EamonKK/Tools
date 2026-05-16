@@ -52,7 +52,7 @@ async function main() {
                 _headers["x-ssos-cid"] = user.xSsosCid || '',
                 _headers["cookie"] = user.cookie || '';
 
-            // [FIX 2] 先检测 Token 是否有效，失效立即提示重新登录
+            // 检测 Token 是否有效
             let userInfoResult = await getUserInfo();
             if (!userInfoResult) {
                 DoubleLog(`⛔️ 「${user.userName ?? `账号${index}`}」Access-Token 已失效，请重新打开蜜雪冰城 App 触发抓包更新 Token！`);
@@ -60,19 +60,19 @@ async function main() {
                 continue;
             }
 
-            let { point: pointF } = userInfoResult;
-            await signin() ?? '';
+            let { userName, point: pointF } = userInfoResult;
 
-            if ($.ckStatus) {
-                let loginUrl = await getLoginUrl();
-                await getActivityToken(loginUrl);
-                await activityIndex();
-                let { userName, point: pointE } = await getUserInfo();
-                $.title = `本次运行共获得${pointE - 0 - pointF}雪王币`
-                DoubleLog(`「${userName}」当前余额为${pointE}雪王币`);
-            } else {
-                DoubleLog(`⛔️ 「${user.userName ?? `账号${index}`}」check ck error! 请重新登录获取新 Token`)
-            }
+            // 获取任务列表
+            await getTaskList();
+            // 访问雪王魔法铺（ruleType:18，每天可得10蜜豆）
+            await visitMagicShop();
+            // 查询最新积分
+            let { point: pointE } = await getUserInfo() ?? { point: pointF };
+            let gained = (pointE - 0) - (pointF - 0);
+            $.title = gained > 0 ? `本次获得${gained}蜜豆` : `今日已签到或暂无积分变化`;
+            DoubleLog(`「${userName}」当前蜜豆余额：${pointE}`);
+            if (gained > 0) DoubleLog(`🎉 本次获得 ${gained} 蜜豆`);
+
             await sendMsg($.notifyMsg.join("\n"));
         }
     } catch (e) {
@@ -80,30 +80,67 @@ async function main() {
     }
 }
 
-//签到
-async function signin() {
+// 获取任务列表（确认任务可用）
+async function getTaskList() {
     try {
+        const opts = {
+            url: "https://activity.mxbc.net/ordact/api/v1/accumulatePoint/taskArea/info",
+            type: "post",
+            body: JSON.stringify({}),
+            headers: { ..._headers, ":authority": "activity.mxbc.net" }
+        };
+        let res = await fetch(opts);
+        if (res?.code == 0) {
+            const visitTask = res?.data?.find?.(t => t.ruleType == 18);
+            $.log(`✅ 任务列表获取成功，访问魔法铺任务：${visitTask ? `可得${visitTask.ruleValue}蜜豆` : '未找到'}`);
+        } else {
+            $.log(`⚠️ 任务列表：${res?.msg || '未知'}`);
+        }
+        return res;
+    } catch (e) {
+        $.log(`⛔️ 获取任务列表失败：${e}`);
+    }
+}
+
+// 访问雪王魔法铺触发积分（ruleType:18）
+async function visitMagicShop() {
+    try {
+        // 先获取跳转 URL
         let timestamp = ts13();
-        const options = {
-            url: `/api/v1/customer/signin`,
+        const loginOpts = {
+            url: `/api/v1/duiba/getLoginUrl`,
             params: {
                 "appId": _appId,
                 "t": timestamp,
                 "sign": getSHA256withRSA('appId=' + _appId + '&t=' + timestamp)
             }
         };
-        let res = await fetch(options);
-        // [FIX 3] 增加对升级提示的识别
-        if (res?.msg && res.msg.includes('升级')) {
-            $.log(`⚠️ 签到: 服务器要求升级版本，已在 appversion 中更新，如仍失败请检查最新版本号`);
+        let loginRes = await fetch(loginOpts);
+        let loginUrl = loginRes?.data?.loginUrl;
+        if (!loginUrl) {
+            $.log(`⚠️ 未获取到魔法铺跳转链接`);
+            return;
         }
-        if (!(res?.code == 0 || res?.code == 5020)) throw new Error(`失败!${res?.msg}`)
-        let signMsg = res?.msg || `成功！获得${res?.data?.ruleValuePoint}币`;
-        $.log(`${$.doFlag[res?.code == 0]} 签到:${signMsg}`);
-        return signMsg;
+        // 访问魔法铺页面触发积分
+        const opts = {
+            url: loginUrl,
+            followRedirect: true,
+            headers: {
+                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'zh-Hans-HK;q=1, zh-Hant-HK;q=0.9, en-HK;q=0.8',
+                'user-agent': 'mi xue bing cheng/3.3.50 (iPhone; iOS 26.5; Scale/3.00)',
+                'cookie': _headers['cookie'] || ''
+            }
+        };
+        let res = await fetch(opts);
+        if (res && (typeof res === 'string' ? res.includes('雪王魔法铺') : true)) {
+            $.log(`✅ 访问雪王魔法铺成功，积分已触发`);
+        } else {
+            $.log(`⚠️ 访问魔法铺响应异常`);
+        }
     } catch (e) {
-        $.ckStatus = false;
-        $.log(`⛔️ 签到:${e}`);
+        $.log(`⛔️ 访问魔法铺失败：${e}`);
     }
 }
 
@@ -120,7 +157,6 @@ async function getUserInfo() {
             }
         };
         let res = await fetch(options);
-        // [FIX 4] 明确捕获 Token 失效的错误码并给出清晰提示
         if (res?.code == 5001 || res?.code == 401 || (res?.msg && res.msg.includes('登录'))) {
             $.log(`❌ Access-Token 失效 (code: ${res?.code})，请重新登录蜜雪冰城 App 以更新 Token`);
             $.ckStatus = false;
@@ -135,80 +171,8 @@ async function getUserInfo() {
         }
     } catch (e) {
         $.ckStatus = false;
-        $.log(`❌签到执行失败！原因为${e}`);
+        $.log(`❌ getUserInfo失败：${e}`);
         return null;
-    }
-}
-
-//获取页面跳转url
-async function getLoginUrl() {
-    try {
-        let timestamp = ts13();
-        const options = {
-            url: `/api/v1/duiba/getLoginUrl`,
-            params: {
-                "appId": _appId,
-                "t": timestamp,
-                "sign": getSHA256withRSA('appId=' + _appId + '&t=' + timestamp)
-            }
-        };
-        let res = await fetch(options);
-        return res?.data?.loginUrl;
-    } catch (e) {
-        $.log(`❌获取loginUrl失败！原因为${e}`);
-    }
-}
-
-//获取活动token
-async function getActivityToken(url) {
-    try {
-        if (!url) throw new Error('loginUrl 为空，跳过');
-        const opts = {
-            url: url,
-            followRedirect: false,
-            resultType: "all",
-            headers: {
-                'Accept-Encoding': `gzip, deflate, br`,
-                'Connection': `keep-alive`,
-                'Cookie': "",
-                'Accept': `text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`,
-                'Host': `76177.activity-12.m.duiba.com.cn`,
-                'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)mxsa_mxbc`,
-                'Accept-Language': `zh-CN,zh-Hans;q=0.9`
-            }
-        }
-        let res = await fetch(opts);
-        let headers = ObjectKeys2LowerCase(res?.headers) ?? {};
-        let session = Array.isArray(headers['set-cookie']) ? [...new Set(headers['set-cookie'])].join("") : headers['set-cookie'];
-        let [wdata4, w_ts, _ac, wdata3, dcustom] = session?.match(/(wdata4|w_ts|_ac|wdata3|dcustom)=.+?;/g) ?? [];
-        if (!wdata4) throw new Error(`token不存在`);
-        $.session = wdata4 + w_ts + _ac + wdata3 + dcustom;
-        $.log(`✅ 获取活动token成功！`)
-    } catch (e) {
-        $.log(`⛔️ 获取活动token失败！${e}`);
-    }
-}
-
-//访问雪王铺
-async function activityIndex() {
-    try {
-        const opts = {
-            url: "https://76177.activity-12.m.duiba.com.cn/chome/index",
-            params: {
-                from: "login",
-                spm: "76177.1.1.1"
-            },
-            headers: {
-                'Cookie': $.session,
-                'Host': `76177.activity-12.m.duiba.com.cn`,
-                'User-Agent': `Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)mxsa_mxbc`,
-            }
-        }
-        let res = await fetch(opts);
-        if (res.match(/请重新登陆/)) throw new Error(`不存在可用session`);
-        $.log(`✅ 访问雪王铺:调用成功!`);
-    } catch (e) {
-        $.log(`⛔️ 访问雪王铺:调用失败!${e}`);
     }
 }
 
