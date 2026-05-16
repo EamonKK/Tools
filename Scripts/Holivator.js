@@ -73,11 +73,6 @@ function parseBody(body) {
   try { return JSON.parse(body || '{}'); } catch(e) { return {}; }
 }
 
-function extractCookie(cookieStr, name) {
-  const match = cookieStr.match(new RegExp(name + '=([^;,\\s]+)'));
-  return match ? match[1] : '';
-}
-
 function maskAccount(v) {
   const s = String(v || '').trim();
   if (!s) return '';
@@ -102,61 +97,31 @@ if (!username || !password) {
 } else {
   Env.notify('Holivator 签到', '开始登录签到', `账号：${maskAccount(username)}`);
 
-  // 第一步：先获取 csrf_token（访问登录页）
+  // 第一步：登录，token 在响应 body 的 data.access_token 里
   Env.request({
-    url: `${BASE_URL}/login`,
-    method: 'GET',
+    url: `${BASE_URL}/api/v1/auth/login`,
+    method: 'POST',
     headers: {
-      'accept': 'text/html',
-      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1'
-    }
+      'content-type': 'application/json',
+      'accept': 'application/json',
+      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
+      'origin': BASE_URL,
+      'referer': `${BASE_URL}/login`
+    },
+    body: JSON.stringify({ username, password })
   }).then(resp => {
-    // 尝试从登录页响应里拿 csrf_token
-    const cookies = resp.headers['Set-Cookie'] || resp.headers['set-cookie'] || '';
-    const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies;
-    const freshCsrf = extractCookie(cookieStr, 'csrf_token');
-    if (freshCsrf) Env.write(freshCsrf, 'holi_csrf_token');
+    const body = parseBody(resp.body);
 
-    // 第二步：登录
-    const csrfForLogin = freshCsrf || Env.read('holi_csrf_token') || '';
-    return Env.request({
-      url: `${BASE_URL}/api/v1/auth/login`,
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
-        'origin': BASE_URL,
-        'referer': `${BASE_URL}/login`,
-        'x-csrf-token': csrfForLogin,
-        'cookie': `csrf_token=${csrfForLogin}; cf_clearance=${Env.read('holi_cf_clearance') || ''}`
-      },
-      body: JSON.stringify({ username, password })
-    });
-  }).then(resp => {
-    if (!resp) return finish('Holivator 签到', '❌ 登录失败', '无响应');
-
-    const cookies = resp.headers['Set-Cookie'] || resp.headers['set-cookie'] || '';
-    const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies;
-
-    let accessToken = extractCookie(cookieStr, 'access_token');
-    let csrfToken = extractCookie(cookieStr, 'csrf_token') || Env.read('holi_csrf_token') || '';
-    const cfClearance = Env.read('holi_cf_clearance') || '';
-
-    // 从 body 提取备用
-    if (!accessToken) {
-      const body = parseBody(resp.body);
-      accessToken = (body.data && (body.data.token || body.data.access_token)) || body.token || body.access_token || '';
-    }
+    // token 在 body.data.access_token 里
+    const accessToken = (body.data && body.data.access_token) || '';
 
     if (!accessToken) {
       return finish('Holivator 签到', '❌ 登录失败', `未获取到 token\n${resp.body}`);
     }
 
     Env.write(accessToken, 'holi_access_token');
-    if (csrfToken) Env.write(csrfToken, 'holi_csrf_token');
 
-    // 第三步：签到
+    // 第二步：签到，只需要 Bearer token
     return Env.request({
       url: `${BASE_URL}/api/v1/user/checkin`,
       method: 'POST',
@@ -166,14 +131,12 @@ if (!username || !password) {
         'accept-language': 'zh-CN,zh-Hans;q=0.9',
         'authorization': `Bearer ${accessToken}`,
         'content-length': '0',
-        'cookie': `access_token=${accessToken}; cf_clearance=${cfClearance}; csrf_token=${csrfToken}`,
         'origin': BASE_URL,
         'referer': `${BASE_URL}/portal`,
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
-        'x-csrf-token': csrfToken
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1'
       },
       body: ''
     });
@@ -181,7 +144,7 @@ if (!username || !password) {
     if (!resp) return;
     const result = parseBody(resp.body);
     if (resp.status === 200 || resp.status === 201) {
-      const points = (result.data && result.data.today_points) || result.points || '';
+      const points = (result.data && result.data.today_points) || '';
       const streak = (result.data && result.data.streak) || '';
       const msg = [points ? `获得 ${points} 积分` : '', streak ? `🔥 连续 ${streak} 天` : ''].filter(Boolean).join('，');
       finish('Holivator 签到', '✅ 签到成功！', msg || '签到完成');
