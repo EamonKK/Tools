@@ -181,8 +181,10 @@ if (!username || !password) {
     if (!resp) return;
     const result = parseBody(resp.body);
     if (resp.status === 200 || resp.status === 201) {
-      const points = (result.data && result.data.points) || result.points || '';
-      finish('Holivator 签到', '✅ 签到成功！', points ? `获得 ${points} 积分` : '签到完成');
+      const points = (result.data && result.data.today_points) || result.points || '';
+      const streak = (result.data && result.data.streak) || '';
+      const msg = [points ? `获得 ${points} 积分` : '', streak ? `🔥 连续 ${streak} 天` : ''].filter(Boolean).join('，');
+      finish('Holivator 签到', '✅ 签到成功！', msg || '签到完成');
     } else if (resp.status === 400 || resp.status === 403) {
       finish('Holivator 签到', '📅 今日已签到', '无需重复签到');
     } else if (resp.status === 401) {
