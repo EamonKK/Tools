@@ -14,7 +14,7 @@
 const BASE_URL = 'https://holivator.de';
 const USERNAME_KEY = 'holi_username';
 const PASSWORD_KEY = 'holi_password';
-const POINTS_KEY = 'holi_exchange_points'; // BoxJS 配置兑换积分数，默认 50
+const POINTS_KEY = 'holi_exchange_points';
 
 const Env = (() => {
   const isQX = typeof $task !== 'undefined' && typeof $prefs !== 'undefined';
@@ -99,7 +99,9 @@ if (!username || !password) {
 } else {
   Env.notify('Holivator 兑换', '开始登录', `账号：${maskAccount(username)}，兑换 ${exchangePoints} 积分`);
 
-  // 第一步：登录获取 access_token
+  let savedToken = '';
+
+  // 第一步：登录
   Env.request({
     url: `${BASE_URL}/api/v1/auth/login`,
     method: 'POST',
@@ -114,33 +116,12 @@ if (!username || !password) {
   }).then(resp => {
     const body = parseBody(resp.body);
     const accessToken = (body.data && body.data.access_token) || '';
-    if (!accessToken) {
-      return finish('Holivator 兑换', '❌ 登录失败', `未获取到 token\n${resp.body}`);
-    }
+    if (!accessToken) return finish('Holivator 兑换', '❌ 登录失败', resp.body);
+    savedToken = accessToken;
     Env.write(accessToken, 'holi_access_token');
+    const csrfToken = Env.read('holi_csrf_token') || '';
 
-    // 第二步：获取 csrf_token
-    return Env.request({
-      url: `${BASE_URL}/api/v1/user/checkin/status`,
-      method: 'GET',
-      headers: {
-        'accept': '*/*',
-        'authorization': `Bearer ${accessToken}`,
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
-        'origin': BASE_URL,
-        'referer': `${BASE_URL}/portal`
-      }
-    }).then(resp2 => {
-      // csrf_token 从已保存的里取
-      const csrfToken = Env.read('holi_csrf_token') || '';
-      return { accessToken, csrfToken };
-    });
-
-  }).then(result => {
-    if (!result) return;
-    const { accessToken, csrfToken } = result;
-
-    // 第三步：兑换积分
+    // 第二步：兑换积分
     return Env.request({
       url: `${BASE_URL}/api/v1/user/exp/exchange`,
       method: 'POST',
@@ -158,18 +139,35 @@ if (!username || !password) {
       },
       body: JSON.stringify({ points: exchangePoints })
     });
-
   }).then(resp => {
     if (!resp) return;
     const result = parseBody(resp.body);
+
     if (resp.status === 200 && result.code === 0) {
       const data = result.data || {};
-      const msg = [
-        `消耗 ${data.points_spent || exchangePoints} 积分`,
-        `获得 ${data.exp_gained || ''} 经验值`,
-        `当前等级 Lv.${data.new_level || ''}`
-      ].filter(Boolean).join('\n');
-      finish('Holivator 兑换', '✅ 兑换成功！', msg);
+
+      // 第三步：查询积分余额
+      return Env.request({
+        url: `${BASE_URL}/api/v1/user/exp/info`,
+        method: 'GET',
+        headers: {
+          'accept': '*/*',
+          'authorization': `Bearer ${savedToken}`,
+          'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
+          'origin': BASE_URL,
+          'referer': `${BASE_URL}/portal/growth`
+        }
+      }).then(infoResp => {
+        const infoData = parseBody(infoResp.body).data || {};
+        const balance = infoData.points_balance !== undefined ? infoData.points_balance : '';
+        const msg = [
+          `消耗 ${data.points_spent || exchangePoints} 积分`,
+          `获得 ${data.exp_gained || ''} 经验值`,
+          `当前等级 Lv.${data.new_level || ''}`,
+          balance !== '' ? `剩余积分 ${balance}` : ''
+        ].filter(Boolean).join('\n');
+        finish('Holivator 兑换', '✅ 兑换成功！', msg);
+      });
     } else {
       finish('Holivator 兑换', '⚠️ 兑换失败', result.message || `状态码: ${resp.status}\n${resp.body}`);
     }
