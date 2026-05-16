@@ -10,7 +10,7 @@ $.doFlag = { "true": "✅", "false": "⛔️" };
 
 //------------------------------------------
 const baseUrl = "https://mxsa.mxbc.net"
-// [FIX] 根据真实抓包数据更新所有请求头
+// [FIX] 根据真实抓包数据更新所有请求
 const _appId = "fb88b9b6c75e4c659855738bee3c1624";
 const _headers = {
     "channel": "appstore",
@@ -249,8 +249,13 @@ dOGyw/X4SFyodv8AEloqd81yGg==
     signature.init(key)
     signature.updateString(content)
     const originSign = signature.sign()
+    // 真实App使用标准Base64（含=号），而非Base64URL
     const sign64u = hextob64u(originSign)
-    return sign64u
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+    // 补齐=号
+    const pad = sign64u.length % 4
+    return pad ? sign64u + '='.repeat(4 - pad) : sign64u
 }
 
 async function loadModule() {
