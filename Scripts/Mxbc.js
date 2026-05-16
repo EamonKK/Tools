@@ -10,14 +10,18 @@ $.doFlag = { "true": "✅", "false": "⛔️" };
 
 //------------------------------------------
 const baseUrl = "https://mxsa.mxbc.net"
+// [FIX] 根据真实抓包数据更新所有请求头
+const _appId = "fb88b9b6c75e4c659855738bee3c1624";
 const _headers = {
-    "app": "mxbc",
-    // [FIX 1] 更新渠道和版本号，旧版本 3.0.3 已被服务器拒绝
-    "appchannel": "appstore",
-    "appversion": "6.6.0",
-    "Access-Token": "",
-    "Host": "mxsa.mxbc.net",
-    "User-Agent": "MXBCApp/6.6.0 (iPhone; iOS 17.4; Scale/3.00)"
+    "channel": "appstore",
+    "appversion": "3.3.50",
+    "content-type": "application/json;charset=UTF-8",
+    "accept": "*/*",
+    "accept-language": "zh-Hans-HK;q=1, zh-Hant-HK;q=0.9, en-HK;q=0.8",
+    "accept-encoding": "gzip, deflate, br",
+    "access-token": "",
+    ":authority": "mxsa.mxbc.net",
+    "user-agent": "mi xue bing cheng/3.3.50 (iPhone; iOS 26.5; Scale/3.00)"
 };
 
 const fetch = async (o) => {
@@ -44,7 +48,9 @@ async function main() {
                 $.ckStatus = true,
                 $.title = "",
                 $.avatar = "",
-                _headers["Access-Token"] = user.token;
+                _headers["access-token"] = user.token,
+                _headers["x-ssos-cid"] = user.xSsosCid || '',
+                _headers["cookie"] = user.cookie || '';
 
             // [FIX 2] 先检测 Token 是否有效，失效立即提示重新登录
             let userInfoResult = await getUserInfo();
@@ -81,9 +87,9 @@ async function signin() {
         const options = {
             url: `/api/v1/customer/signin`,
             params: {
-                "appId": "d82be6bbc1da11eb9dd000163e122ecb",
+                "appId": _appId,
                 "t": timestamp,
-                "sign": getSHA256withRSA('appId=d82be6bbc1da11eb9dd000163e122ecb&t=' + timestamp)
+                "sign": getSHA256withRSA('appId=' + _appId + '&t=' + timestamp)
             }
         };
         let res = await fetch(options);
@@ -108,9 +114,9 @@ async function getUserInfo() {
         const options = {
             url: `/api/v1/customer/info`,
             params: {
-                "appId": "d82be6bbc1da11eb9dd000163e122ecb",
+                "appId": _appId,
                 "t": timestamp,
-                "sign": getSHA256withRSA('appId=d82be6bbc1da11eb9dd000163e122ecb&t=' + timestamp)
+                "sign": getSHA256withRSA('appId=' + _appId + '&t=' + timestamp)
             }
         };
         let res = await fetch(options);
@@ -141,9 +147,9 @@ async function getLoginUrl() {
         const options = {
             url: `/api/v1/duiba/getLoginUrl`,
             params: {
-                "appId": "d82be6bbc1da11eb9dd000163e122ecb",
+                "appId": _appId,
                 "t": timestamp,
-                "sign": getSHA256withRSA('appId=d82be6bbc1da11eb9dd000163e122ecb&t=' + timestamp)
+                "sign": getSHA256withRSA('appId=' + _appId + '&t=' + timestamp)
             }
         };
         let res = await fetch(options);
@@ -213,13 +219,20 @@ async function getCookie() {
 
         const header = ObjectKeys2LowerCase($request.headers) ?? {};
         const body = $.toObj($response.body);
-        const token = header['access-token'];
+        // 兼容新版字段名 access-token（小写）
+        const token = header['access-token'] || header['Access-Token'];
         if (!(token && body)) throw new Error("get token error,the value is empty");
+
+        // 同时保存 cookie 和 x-ssos-cid，供后续请求使用
+        const cookie = header['cookie'] || '';
+        const xSsosCid = header['x-ssos-cid'] || '';
 
         const newData = {
             "userId": body?.data?.mobilePhone,
             "token": token,
             "userName": body?.data?.mobilePhone,
+            "cookie": cookie,
+            "xSsosCid": xSsosCid,
         }
 
         const index = userCookie.findIndex(e => e.userId == newData.userId);
