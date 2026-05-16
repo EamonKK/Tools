@@ -80,6 +80,20 @@ function maskAccount(v) {
   return s.slice(0, 2) + '***' + s.slice(-2);
 }
 
+function authHeaders(token) {
+  return {
+    'accept': '*/*',
+    'accept-language': 'zh-CN,zh-Hans;q=0.9',
+    'authorization': `Bearer ${token}`,
+    'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1',
+    'origin': BASE_URL,
+    'referer': `${BASE_URL}/portal`,
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin'
+  };
+}
+
 let finished = false;
 
 function finish(title, subTitle, message) {
@@ -97,7 +111,7 @@ if (!username || !password) {
 } else {
   Env.notify('Holivator 签到', '开始登录签到', `账号：${maskAccount(username)}`);
 
-  // 第一步：登录，token 在响应 body 的 data.access_token 里
+  // 第一步：登录
   Env.request({
     url: `${BASE_URL}/api/v1/auth/login`,
     method: 'POST',
@@ -111,50 +125,54 @@ if (!username || !password) {
     body: JSON.stringify({ username, password })
   }).then(resp => {
     const body = parseBody(resp.body);
-
-    // token 在 body.data.access_token 里
     const accessToken = (body.data && body.data.access_token) || '';
-
     if (!accessToken) {
       return finish('Holivator 签到', '❌ 登录失败', `未获取到 token\n${resp.body}`);
     }
-
     Env.write(accessToken, 'holi_access_token');
 
-    // 第二步：签到，只需要 Bearer token
+    // 第二步：签到
     return Env.request({
       url: `${BASE_URL}/api/v1/user/checkin`,
       method: 'POST',
-      headers: {
-        'accept': '*/*',
-        'accept-encoding': 'gzip, deflate, br, zstd',
-        'accept-language': 'zh-CN,zh-Hans;q=0.9',
-        'authorization': `Bearer ${accessToken}`,
-        'content-length': '0',
-        'origin': BASE_URL,
-        'referer': `${BASE_URL}/portal`,
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1'
-      },
+      headers: Object.assign({}, authHeaders(accessToken), { 'content-length': '0' }),
       body: ''
-    });
-  }).then(resp => {
-    if (!resp) return;
-    const result = parseBody(resp.body);
-    if (resp.status === 200 || resp.status === 201) {
-      const points = (result.data && result.data.today_points) || '';
-      const streak = (result.data && result.data.streak) || '';
-      const msg = [points ? `获得 ${points} 积分` : '', streak ? `🔥 连续 ${streak} 天` : ''].filter(Boolean).join('，');
-      finish('Holivator 签到', '✅ 签到成功！', msg || '签到完成');
-    } else if (resp.status === 400 || resp.status === 403) {
-      finish('Holivator 签到', '📅 今日已签到', '无需重复签到');
-    } else if (resp.status === 401) {
-      finish('Holivator 签到', '❌ 认证失败', '请检查账号密码是否正确');
-    } else {
-      finish('Holivator 签到', '⚠️ 签到异常', `状态码: ${resp.status}\n${resp.body}`);
+    }).then(resp2 => ({ resp2, accessToken }));
+
+  }).then(result => {
+    if (!result) return;
+    const { resp2, accessToken } = result;
+    const checkinOk = resp2.status === 200 || resp2.status === 201 || resp2.status === 400 || resp2.status === 403;
+
+    if (!checkinOk) {
+      return finish('Holivator 签到', '⚠️ 签到异常', `状态码: ${resp2.status}\n${resp2.body}`);
     }
+
+    const alreadyDone = resp2.status === 400 || resp2.status === 403;
+
+    // 第三步：查询签到状态获取积分
+    return Env.request({
+      url: `${BASE_URL}/api/v1/user/checkin/status`,
+      method: 'GET',
+      headers: authHeaders(accessToken)
+    }).then(resp3 => {
+      const data = parseBody(resp3.body).data || {};
+      const points = data.today_points || '';
+      const streak = data.streak || '';
+      const total = data.total_points_earned || '';
+      const msg = [
+        points ? `今日获得 ${points} 积分` : '',
+        streak ? `🔥 连续 ${streak} 天` : '',
+        total ? `累计 ${total} 积分` : ''
+      ].filter(Boolean).join('\n');
+
+      if (alreadyDone) {
+        finish('Holivator 签到', '📅 今日已签到', msg || '无需重复签到');
+      } else {
+        finish('Holivator 签到', '✅ 签到成功！', msg || '签到完成');
+      }
+    });
+
   }).catch(err => {
     finish('Holivator 签到', '❌ 请求失败', err && (err.error || err.message) ? (err.error || err.message) : String(err));
   });
