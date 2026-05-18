@@ -40,6 +40,13 @@ $.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'fal
 $.is_default = ($.isNode() ? process.env['nodeseek_default'] : $.getdata('nodeseek_default')) || 'false';
 //------------------------------------------
 async function main() {
+    // 随机延迟 0~10 分钟
+    const delayMs = Math.floor(Math.random() * 10 * 60 * 1000);
+    const delayMin = Math.floor(delayMs / 60000);
+    const delaySec = Math.floor((delayMs % 60000) / 1000);
+    $.log(`[INFO]随机延迟 ${delayMin} 分 ${delaySec} 秒后开始签到...\n`);
+    await $.wait(delayMs);
+
     //并发执行所有用户
     for (let user of $.userList) {
         $.notifyMsg = [], $.title = "";
