@@ -214,3 +214,4 @@ if (!username || !password) {
       finish('Holivator 签到', '❌ 请求失败', err && (err.error || err.message) ? (err.error || err.message) : String(err));
     });
   }, randomDelay);
+}
