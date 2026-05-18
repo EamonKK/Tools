@@ -1,8 +1,7 @@
 /**
  * Holivator 每日签到脚本
- * 支持 Surge / Loon / QX
- * 支持 BoxJS 配置账号密码
- * 随机延迟签到 + 失败自动重试最多5次
+ * 按 cron 时间触发，5分钟内随机延迟执行
+ * 失败自动重试最多5次
  *
  * ========== Surge 配置文件 ==========
  * [Script]
@@ -16,9 +15,8 @@ const BASE_URL = 'https://holivator.de';
 const USERNAME_KEY = 'holi_username';
 const PASSWORD_KEY = 'holi_password';
 const MAX_RETRY = 5;
-const RETRY_INTERVAL = 10000;    // 重试间隔 10 秒
-const RANDOM_DELAY_MIN = 0;      // 最小随机延迟（分钟）
-const RANDOM_DELAY_MAX = 60;     // 最大随机延迟（分钟）
+const RETRY_INTERVAL = 10000;
+const MAX_RANDOM_DELAY = 5 * 60 * 1000; // 5分钟内随机
 
 const Env = (() => {
   const isQX = typeof $task !== 'undefined' && typeof $prefs !== 'undefined';
@@ -202,16 +200,13 @@ if (!username || !password) {
     });
   }
 
-  // 随机延迟后执行
-  const randomMin = Math.floor(Math.random() * (RANDOM_DELAY_MAX - RANDOM_DELAY_MIN + 1) + RANDOM_DELAY_MIN);
-  const randomDelay = randomMin * 60 * 1000;
-
-  Env.notify('Holivator 签到', '⏰ 随机延迟', `将在 ${randomMin} 分钟后签到`);
+  // 5分钟内随机延迟，总执行时间远低于 Surge 超时限制
+  const delay = Math.floor(Math.random() * MAX_RANDOM_DELAY);
+  const delaySec = Math.floor(delay / 1000);
 
   setTimeout(function() {
-    Env.notify('Holivator 签到', '开始登录签到', `账号：${maskAccount(username)}`);
     attempt(1).catch(err => {
       finish('Holivator 签到', '❌ 请求失败', err && (err.error || err.message) ? (err.error || err.message) : String(err));
     });
-  }, randomDelay);
+  }, delay);
 }
