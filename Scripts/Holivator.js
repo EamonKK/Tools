@@ -19,8 +19,8 @@ const BASE_URL     = 'https://holivator.de';
 const USERNAME_KEY = 'holi_username';
 const PASSWORD_KEY = 'holi_password';
 
-// 随机延迟上限（毫秒），默认 20 分钟
-const MAX_DELAY_MS  = 20 * 60 * 1000;
+// 随机延迟上限（毫秒），默认 10 分钟
+const MAX_DELAY_MS  = 10 * 60 * 1000;
 // 最大重试次数（不含首次）
 const MAX_RETRIES = 5;
 // 斐波那契退避间隔表（毫秒）：5s → 13s → 21s → 34s → 55s
