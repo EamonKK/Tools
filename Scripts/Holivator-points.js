@@ -92,13 +92,6 @@ function finish(title, subTitle, message) {
 }
 
 (async () => {
-  // 随机延迟 0~10 分钟
-  const delayMs = Math.floor(Math.random() * 10 * 60 * 1000);
-  const delayMin = Math.floor(delayMs / 60000);
-  const delaySec = Math.floor((delayMs % 60000) / 1000);
-  Env.notify('Holivator 兑换', '⏳ 随机延迟', `将在 ${delayMin} 分 ${delaySec} 秒后开始兑换`);
-  await new Promise(resolve => setTimeout(resolve, delayMs));
-
   const username = String(Env.read(USERNAME_KEY) || '').trim();
   const password = String(Env.read(PASSWORD_KEY) || '').trim();
 
