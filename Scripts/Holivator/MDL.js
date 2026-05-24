@@ -1,213 +1,184 @@
 /**
- * gyq.saodu6.wang 签到脚本
- * 
- * BoxJS 订阅：将下方 JSON 保存为 .json 文件并添加到 BoxJS 订阅
- * 
- * Surge / Loon / Shadowrocket 配置：
+ * MDL 签到脚本
+ * 兼容 Surge / Loon / Quantumult X
+ *
+ * Surge / Loon:
  * [Script]
- * gyq签到 = type=cron,cronexp="0 8 * * *",script-path=gyq_saodu6_checkin.js,timeout=60
- * 
- * Quantumult X 配置：
+ * gyq签到 = type=cron,cronexp="0 8 * * *",script-path=https://你的链接/gyq_saodu6_checkin.js,timeout=60
+ *
+ * Quantumult X:
  * [task_local]
- * 0 8 * * * gyq_saodu6_checkin.js, tag=gyq签到, enabled=true
+ * 0 8 * * * https://你的链接/gyq_saodu6_checkin.js, tag=gyq签到, enabled=true
  */
 
 const $ = new Env("gyq签到");
 
-// BoxJS 存储 key
-const BOXJS_KEY_USER = "gyq_username";
-const BOXJS_KEY_PASS = "gyq_password";
-
 const BASE_URL = "https://gyq.saodu6.wang:19999";
+const USERNAME = $.getdata("gyq_username");
+const PASSWORD = $.getdata("gyq_password");
 
 !(async () => {
-  const username = $.getdata(BOXJS_KEY_USER);
-  const password = $.getdata(BOXJS_KEY_PASS);
-
-  if (!username || !password) {
+  if (!USERNAME || !PASSWORD) {
     $.msg("gyq签到", "❌ 未配置账号", "请在 BoxJS 中填写用户名和密码");
+    $.done();
     return;
   }
 
   try {
     // Step 1: 登录
-    const loginResp = await http_post(`${BASE_URL}/api/requests/auth`, {
-      username,
-      password,
+    const loginResp = await request({
+      method: "POST",
+      url: `${BASE_URL}/api/requests/auth`,
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "*/*",
+        "Referer": `${BASE_URL}/?tab=profile`,
+      },
+      body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
     });
 
-    const loginData = JSON.parse(loginResp.body);
-    if (loginData.status !== "success") {
-      $.msg("gyq签到", "❌ 登录失败", loginData.message || JSON.stringify(loginData));
+    console.log("登录响应:", loginResp.body);
+    const loginData = safeJson(loginResp.body);
+    if (!loginData || loginData.status !== "success") {
+      $.msg("gyq签到", "❌ 登录失败", loginData?.message || loginResp.body);
+      $.done();
       return;
     }
 
-    // 提取 session cookie
-    const cookie = getCookie(loginResp.headers);
+    // 提取 Cookie
+    const cookie = extractCookie(loginResp.headers);
+    console.log("Cookie:", cookie);
     if (!cookie) {
-      $.msg("gyq签到", "❌ 获取 Cookie 失败", "登录后未找到 session_id");
+      $.msg("gyq签到", "❌ 获取 Cookie 失败", "未找到 session_id");
+      $.done();
       return;
     }
 
-    // Step 2: 检查是否已签到
-    const infoResp = await http_get(`${BASE_URL}/api/user/points/info`, cookie);
-    const infoData = JSON.parse(infoResp.body);
+    // Step 2: 查询积分/签到状态
+    const infoResp = await request({
+      method: "GET",
+      url: `${BASE_URL}/api/user/points/info`,
+      headers: {
+        "Cookie": cookie,
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "*/*",
+        "Referer": `${BASE_URL}/?tab=profile`,
+      },
+    });
 
-    if (infoData.status !== "success") {
-      $.msg("gyq签到", "❌ 获取积分信息失败", JSON.stringify(infoData));
+    console.log("积分信息:", infoResp.body);
+    const infoData = safeJson(infoResp.body);
+    if (!infoData || infoData.status !== "success") {
+      $.msg("gyq签到", "❌ 获取积分信息失败", infoResp.body);
+      $.done();
       return;
     }
 
     const { points, has_checked_in } = infoData.data;
-
     if (has_checked_in) {
       $.msg("gyq签到", "ℹ️ 今日已签到", `当前积分：${points}`);
+      $.done();
       return;
     }
 
     // Step 3: 执行签到
-    const checkinResp = await http_post_cookie(`${BASE_URL}/api/user/points/checkin`, cookie);
-    const checkinData = JSON.parse(checkinResp.body);
-
-    if (checkinData.status === "success") {
-      const earned = checkinData.data?.points_earned ?? "?";
-      const total  = checkinData.data?.total_points  ?? "?";
-      $.msg("gyq签到", "✅ 签到成功", `获得积分：${earned}\n累计积分：${total}`);
-    } else {
-      $.msg("gyq签到", "⚠️ 签到失败", JSON.stringify(checkinData));
-    }
-  } catch (e) {
-    $.msg("gyq签到", "❌ 脚本异常", e.message || String(e));
-  } finally {
-    $.done();
-  }
-})();
-
-// ─── 工具函数 ───────────────────────────────────────────
-
-function getCookie(headers) {
-  // 兼容 Surge / QX / Loon 的 headers 格式
-  const setCookie =
-    headers?.["set-cookie"] ||
-    headers?.["Set-Cookie"] ||
-    (Array.isArray(headers)
-      ? headers.find((h) => h.name?.toLowerCase() === "set-cookie")?.value
-      : null);
-  if (!setCookie) return null;
-  const match = (Array.isArray(setCookie) ? setCookie.join(";") : setCookie).match(
-    /session_id=[^;]+/
-  );
-  return match ? match[0] : null;
-}
-
-function http_post(url, body) {
-  return new Promise((resolve, reject) => {
-    const opts = {
-      url,
+    const checkinResp = await request({
+      method: "POST",
+      url: `${BASE_URL}/api/user/points/checkin`,
       headers: {
+        "Cookie": cookie,
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0",
-        Accept: "*/*",
-      },
-      body: JSON.stringify(body),
-    };
-    $.post(opts, (err, resp) => (err ? reject(err) : resolve(resp)));
-  });
-}
-
-function http_get(url, cookie) {
-  return new Promise((resolve, reject) => {
-    const opts = {
-      url,
-      headers: {
-        Cookie: cookie,
-        "User-Agent": "Mozilla/5.0",
-        Accept: "*/*",
-      },
-    };
-    $.get(opts, (err, resp) => (err ? reject(err) : resolve(resp)));
-  });
-}
-
-function http_post_cookie(url, cookie) {
-  return new Promise((resolve, reject) => {
-    const opts = {
-      url,
-      headers: {
-        Cookie: cookie,
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        Accept: "*/*",
+        "Accept": "*/*",
+        "Referer": `${BASE_URL}/?tab=profile`,
       },
       body: "{}",
-    };
-    $.post(opts, (err, resp) => (err ? reject(err) : resolve(resp)));
+    });
+
+    console.log("签到响应:", checkinResp.body);
+    const checkinData = safeJson(checkinResp.body);
+    if (checkinData && checkinData.status === "success") {
+      const earned = checkinData.data?.points_earned ?? "?";
+      const total  = checkinData.data?.total_points  ?? points;
+      $.msg("gyq签到", "✅ 签到成功", `获得积分：${earned}\n累计积分：${total}`);
+    } else {
+      $.msg("gyq签到", "⚠️ 签到失败", checkinResp.body || JSON.stringify(checkinData));
+    }
+  } catch (e) {
+    console.log("异常:", e);
+    $.msg("gyq签到", "❌ 脚本异常", e.message || String(e));
+  }
+
+  $.done();
+})();
+
+// ─── 工具函数 ────────────────────────────────────────────
+
+function safeJson(str) {
+  try { return JSON.parse(str); } catch { return null; }
+}
+
+function extractCookie(headers) {
+  if (!headers) return null;
+  // Surge: headers 是对象，set-cookie 可能是字符串或数组
+  // QX:    headers 是对象
+  // Loon:  同 Surge
+  let raw = headers["set-cookie"] || headers["Set-Cookie"] || "";
+  if (Array.isArray(raw)) raw = raw.join("; ");
+  const m = raw.match(/session_id=[^;]+/);
+  return m ? m[0] : null;
+}
+
+// 统一请求函数，兼容 Surge / Loon / QX
+function request(opts) {
+  return new Promise((resolve, reject) => {
+    const isQX   = typeof $task !== "undefined";
+    const isSurge = typeof $httpClient !== "undefined";
+
+    if (isQX) {
+      $task.fetch({
+        method: opts.method,
+        url: opts.url,
+        headers: opts.headers,
+        body: opts.body,
+      }).then(resp => resolve({ body: resp.body, headers: resp.headers, status: resp.statusCode }))
+        .catch(reject);
+    } else if (isSurge) {
+      const fn = opts.method === "POST" ? $httpClient.post : $httpClient.get;
+      fn({
+        url: opts.url,
+        headers: opts.headers,
+        body: opts.body,
+      }, (err, resp, body) => {
+        if (err) return reject(new Error(err));
+        resolve({ body, headers: resp.headers, status: resp.status });
+      });
+    } else {
+      reject(new Error("不支持的运行环境"));
+    }
   });
 }
 
-// ─── Env 类（兼容 Surge / QX / Loon / Node）───────────────
+// ─── Env 类 ──────────────────────────────────────────────
 
 function Env(name) {
   this.name = name;
-  this.isQX = typeof $task !== "undefined";
-  this.isLoon = typeof $loon !== "undefined";
-  this.isSurge = typeof $httpClient !== "undefined" && !this.isLoon;
-  this.isNode = typeof require === "function";
+  const isQX    = typeof $task !== "undefined";
+  const isSurge = typeof $httpClient !== "undefined";
 
   this.getdata = (key) => {
-    if (this.isQX) return $prefs.valueForKey(key);
-    if (this.isLoon || this.isSurge) return $persistentStore.read(key);
-    if (this.isNode) {
-      // Node 环境下从 process.env 读取（方便测试）
-      return process.env[key] || null;
-    }
+    if (isQX)    return $prefs.valueForKey(key);
+    if (isSurge) return $persistentStore.read(key);
     return null;
   };
 
-  this.setdata = (val, key) => {
-    if (this.isQX) return $prefs.setValueForKey(val, key);
-    if (this.isLoon || this.isSurge) return $persistentStore.write(val, key);
-    return false;
-  };
-
   this.msg = (title, subtitle, body) => {
-    if (this.isQX) $notify(title, subtitle, body);
-    else if (this.isLoon || this.isSurge) $notification.post(title, subtitle, body);
-    else console.log(`[${title}] ${subtitle} ${body}`);
+    if (isQX)    $notify(title, subtitle, body);
+    if (isSurge) $notification.post(title, subtitle, body);
   };
-
-  this.get = this.isQX
-    ? (opts, cb) => $task.fetch({ method: "GET", ...opts }).then((r) => cb(null, r)).catch(cb)
-    : this.isSurge || this.isLoon
-    ? (opts, cb) => $httpClient.get(opts, cb)
-    : (opts, cb) => {
-        const https = require("https");
-        const u = new URL(opts.url);
-        const req = https.request(
-          { hostname: u.hostname, port: u.port, path: u.pathname + u.search, method: "GET",
-            headers: opts.headers, rejectUnauthorized: false },
-          (res) => { let b = ""; res.on("data", (d) => (b += d)); res.on("end", () => cb(null, { status: res.statusCode, headers: res.headers, body: b })); }
-        );
-        req.on("error", cb); req.end();
-      };
-
-  this.post = this.isQX
-    ? (opts, cb) => $task.fetch({ method: "POST", ...opts }).then((r) => cb(null, r)).catch(cb)
-    : this.isSurge || this.isLoon
-    ? (opts, cb) => $httpClient.post(opts, cb)
-    : (opts, cb) => {
-        const https = require("https");
-        const u = new URL(opts.url);
-        const data = opts.body || "";
-        const req = https.request(
-          { hostname: u.hostname, port: u.port, path: u.pathname + u.search, method: "POST",
-            headers: { ...opts.headers, "Content-Length": Buffer.byteLength(data) }, rejectUnauthorized: false },
-          (res) => { let b = ""; res.on("data", (d) => (b += d)); res.on("end", () => cb(null, { status: res.statusCode, headers: res.headers, body: b })); }
-        );
-        req.on("error", cb); req.write(data); req.end();
-      };
 
   this.done = () => {
-    if (this.isQX || this.isLoon || this.isSurge) $done({});
+    if (isQX || isSurge) $done({});
   };
 }
