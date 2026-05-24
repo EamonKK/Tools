@@ -1,10 +1,10 @@
 /**
- * MDL 签到脚本
+ * gyq.saodu6.wang 签到脚本
  * 兼容 Surge / Loon / Quantumult X
  *
  * Surge / Loon:
  * [Script]
- * MDL签到 = type=cron,cronexp="0 8 * * *",script-path=https://你的链接/gyq_saodu6_checkin.js,timeout=60
+ * MDL签到 = type=cron,cronexp="0 8 * * *",script-path=https://你的链接/gyq_saodu6_checkin.js,timeout=700
  *
  * Quantumult X:
  * [task_local]
@@ -13,9 +13,11 @@
 
 const $ = new Env("MDL签到");
 
-const BASE_URL = "https://gyq.saodu6.wang:19999";
-const USERNAME = $.getdata("gyq_username");
-const PASSWORD = $.getdata("gyq_password");
+const BASE_URL   = "https://gyq.saodu6.wang:19999";
+const USERNAME   = $.getdata("gyq_username");
+const PASSWORD   = $.getdata("gyq_password");
+const MAX_RETRY  = 5;          // 最多重试次数
+const RETRY_GAP  = 30 * 1000; // 每次重试间隔 30 秒
 
 !(async () => {
   if (!USERNAME || !PASSWORD) {
@@ -24,123 +26,159 @@ const PASSWORD = $.getdata("gyq_password");
     return;
   }
 
-  try {
-    // Step 1: 登录
-    const loginResp = await request({
-      method: "POST",
-      url: `${BASE_URL}/api/requests/auth`,
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "*/*",
-        "Referer": `${BASE_URL}/?tab=profile`,
-      },
-      body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
-    });
+  // 随机延迟 0~10 分钟
+  const delay = Math.floor(Math.random() * 10 * 60 * 1000);
+  console.log(`延迟 ${Math.round(delay / 1000)} 秒后签到...`);
+  await sleep(delay);
 
-    const loginData = safeJson(loginResp.body);
-    if (!loginData || loginData.status !== "success") {
-      $.msg("MDL签到", "❌ 登录失败", loginData?.message || loginResp.body);
-      $.done();
-      return;
-    }
+  // 读取今日已重试次数（每天重置）
+  const today        = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const retryKey     = "gyq_retry_date";
+  const retryCount   = "gyq_retry_count";
+  const savedDate    = $.getdata(retryKey) || "";
+  let   tried        = savedDate === today ? parseInt($.getdata(retryCount) || "0") : 0;
 
-    // 提取 Cookie
-    const cookie = extractCookie(loginResp.headers);
-    if (!cookie) {
-      $.msg("MDL签到", "❌ 获取 Cookie 失败", "未找到 session_id");
-      $.done();
-      return;
-    }
-
-    // Step 2: 查询积分/签到状态
-    const infoResp = await request({
-      method: "GET",
-      url: `${BASE_URL}/api/user/points/info`,
-      headers: {
-        "Cookie": cookie,
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "*/*",
-        "Referer": `${BASE_URL}/?tab=profile`,
-      },
-    });
-
-    const infoData = safeJson(infoResp.body);
-    if (!infoData || infoData.status !== "success") {
-      $.msg("MDL签到", "❌ 获取积分信息失败", infoResp.body);
-      $.done();
-      return;
-    }
-
-    const { points, has_checked_in } = infoData.data;
-
-    // 今日已签到：用签到前存的积分快照算出今日获得
-    if (has_checked_in) {
-      const pointsBefore = parseInt($.getdata("gyq_points_before") || "0");
-      const earned = pointsBefore > 0 ? points - pointsBefore : "?";
-      $.msg(
-        "MDL签到",
-        "ℹ️ 今日已签到",
-        earned !== "?" ? `今日获得：+${earned} 积分\n当前积分：${points}` : `当前积分：${points}`
-      );
-      $.done();
-      return;
-    }
-
-    // Step 3: 记录签到前积分快照
-    $.setdata(String(points), "gyq_points_before");
-
-    // Step 4: 执行签到
-    const checkinResp = await request({
-      method: "POST",
-      url: `${BASE_URL}/api/user/points/checkin`,
-      headers: {
-        "Cookie": cookie,
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "*/*",
-        "Referer": `${BASE_URL}/?tab=profile`,
-      },
-      body: "{}",
-    });
-
-    const checkinData = safeJson(checkinResp.body);
-
-    if (checkinData && checkinData.status === "success") {
-      // 优先用接口返回的 earned，否则查一次新积分做差
-      let earned = checkinData.data?.points_earned;
-      let total  = checkinData.data?.total_points;
-
-      if (!earned || !total) {
-        // 接口没返回明细，再查一次积分
-        const infoResp2 = await request({
-          method: "GET",
-          url: `${BASE_URL}/api/user/points/info`,
-          headers: { "Cookie": cookie, "User-Agent": "Mozilla/5.0", "Accept": "*/*" },
-        });
-        const infoData2 = safeJson(infoResp2.body);
-        total  = infoData2?.data?.points ?? "?";
-        earned = total !== "?" ? total - points : "?";
-      }
-
-      $.msg(
-        "MDL签到",
-        "✅ 签到成功",
-        `今日获得：+${earned} 积分\n当前积分：${total}`
-      );
-    } else {
-      $.msg("MDL签到", "⚠️ 签到失败", checkinResp.body);
-    }
-
-  } catch (e) {
-    console.log("异常:", e);
-    $.msg("MDL签到", "❌ 脚本异常", e.message || String(e));
+  if (tried >= MAX_RETRY) {
+    $.msg("MDL签到", "🚫 今日已达重试上限", `已连续失败 ${MAX_RETRY} 次，不再尝试`);
+    $.done();
+    return;
   }
 
+  let lastErr = "";
+
+  while (tried < MAX_RETRY) {
+    try {
+      const result = await doCheckin();
+
+      if (result.ok) {
+        // 签到成功或今日已签到，重置重试计数
+        $.setdata(today, retryKey);
+        $.setdata("0", retryCount);
+        $.msg("MDL签到", result.subtitle, result.body);
+        $.done();
+        return;
+      }
+
+      // 业务失败（非异常），也算一次失败
+      lastErr = result.body;
+    } catch (e) {
+      console.log(`第 ${tried + 1} 次失败:`, e);
+      lastErr = e.message || String(e);
+    }
+
+    tried++;
+    $.setdata(today, retryKey);
+    $.setdata(String(tried), retryCount);
+    console.log(`已失败 ${tried} 次，${tried < MAX_RETRY ? `${RETRY_GAP / 1000}秒后重试...` : "不再重试"}`);
+
+    if (tried < MAX_RETRY) await sleep(RETRY_GAP);
+  }
+
+  $.msg("MDL签到", `🚫 签到失败（已重试 ${MAX_RETRY} 次）`, lastErr);
   $.done();
 })();
 
+// ─── 核心签到逻辑 ────────────────────────────────────────
+
+async function doCheckin() {
+  // Step 1: 登录
+  const loginResp = await request({
+    method: "POST",
+    url: `${BASE_URL}/api/requests/auth`,
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0",
+      "Accept": "*/*",
+      "Referer": `${BASE_URL}/?tab=profile`,
+    },
+    body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
+  });
+
+  const loginData = safeJson(loginResp.body);
+  if (!loginData || loginData.status !== "success") {
+    return { ok: false, subtitle: "❌ 登录失败", body: loginData?.message || loginResp.body };
+  }
+
+  // 提取 Cookie
+  const cookie = extractCookie(loginResp.headers);
+  if (!cookie) {
+    return { ok: false, subtitle: "❌ 获取 Cookie 失败", body: "未找到 session_id" };
+  }
+
+  // Step 2: 查询积分/签到状态
+  const infoResp = await request({
+    method: "GET",
+    url: `${BASE_URL}/api/user/points/info`,
+    headers: { "Cookie": cookie, "User-Agent": "Mozilla/5.0", "Accept": "*/*", "Referer": `${BASE_URL}/?tab=profile` },
+  });
+
+  const infoData = safeJson(infoResp.body);
+  if (!infoData || infoData.status !== "success") {
+    return { ok: false, subtitle: "❌ 获取积分信息失败", body: infoResp.body };
+  }
+
+  const { points, has_checked_in } = infoData.data;
+
+  // 今日已签到
+  if (has_checked_in) {
+    const pointsBefore = parseInt($.getdata("gyq_points_before") || "0");
+    const earned = pointsBefore > 0 ? points - pointsBefore : "?";
+    return {
+      ok: true,
+      subtitle: "ℹ️ 今日已签到",
+      body: earned !== "?" ? `今日获得：+${earned} 积分\n当前积分：${points}` : `当前积分：${points}`,
+    };
+  }
+
+  // Step 3: 记录签到前积分快照
+  $.setdata(String(points), "gyq_points_before");
+
+  // Step 4: 执行签到
+  const checkinResp = await request({
+    method: "POST",
+    url: `${BASE_URL}/api/user/points/checkin`,
+    headers: {
+      "Cookie": cookie,
+      "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0",
+      "Accept": "*/*",
+      "Referer": `${BASE_URL}/?tab=profile`,
+    },
+    body: "{}",
+  });
+
+  const checkinData = safeJson(checkinResp.body);
+
+  if (checkinData && checkinData.status === "success") {
+    let earned = checkinData.data?.points_earned;
+    let total  = checkinData.data?.total_points;
+
+    if (!earned || !total) {
+      const infoResp2 = await request({
+        method: "GET",
+        url: `${BASE_URL}/api/user/points/info`,
+        headers: { "Cookie": cookie, "User-Agent": "Mozilla/5.0", "Accept": "*/*" },
+      });
+      const infoData2 = safeJson(infoResp2.body);
+      total  = infoData2?.data?.points ?? "?";
+      earned = total !== "?" ? total - points : "?";
+    }
+
+    return {
+      ok: true,
+      subtitle: "✅ 签到成功",
+      body: `今日获得：+${earned} 积分\n当前积分：${total}`,
+    };
+  }
+
+  return { ok: false, subtitle: "⚠️ 签到失败", body: checkinResp.body };
+}
+
 // ─── 工具函数 ────────────────────────────────────────────
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
 function safeJson(str) {
   try { return JSON.parse(str); } catch { return null; }
@@ -169,14 +207,11 @@ function request(opts) {
         .catch(reject);
     } else if (isSurge) {
       const fn = opts.method === "POST" ? $httpClient.post : $httpClient.get;
-      fn({
-        url: opts.url,
-        headers: opts.headers,
-        body: opts.body,
-      }, (err, resp, body) => {
-        if (err) return reject(new Error(err));
-        resolve({ body, headers: resp.headers, status: resp.status });
-      });
+      fn({ url: opts.url, headers: opts.headers, body: opts.body },
+        (err, resp, body) => {
+          if (err) return reject(new Error(err));
+          resolve({ body, headers: resp.headers, status: resp.status });
+        });
     } else {
       reject(new Error("不支持的运行环境"));
     }
