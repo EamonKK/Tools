@@ -1,0 +1,29 @@
+{
+  "id": "gyq.saodu6.checkin",
+  "name": "gyq 签到",
+  "description": "gyq.saodu6.wang 自动每日签到",
+  "author": "@you",
+  "repo": "",
+  "icons": [
+    "https://gyq.saodu6.wang:19999/static/img/logo-app-2.png",
+    "https://gyq.saodu6.wang:19999/static/img/logo-app-2.png"
+  ],
+  "keys": [
+    {
+      "id": "gyq_username",
+      "name": "用户名",
+      "type": "text",
+      "placeholder": "请输入登录用户名"
+    },
+    {
+      "id": "gyq_password",
+      "name": "密码",
+      "type": "text",
+      "placeholder": "请输入登录密码"
+    }
+  ],
+  "scopes": [
+    "gyq_username",
+    "gyq_password"
+  ]
+}
