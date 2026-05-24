@@ -19,6 +19,15 @@ const PASSWORD   = $.getdata("gyq_password");
 const MAX_RETRY  = 5;          // 最多重试次数
 const RETRY_GAP  = 30 * 1000; // 每次重试间隔 30 秒
 
+// 随机从 Safari / Chrome UA 池中选一个
+const UA_POOL = [
+  // iPhone Safari
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.2 Mobile/15E148 Safari/604.1",
+  // Mac Safari
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_3_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15",
+];
+const USER_AGENT = UA_POOL[Math.floor(Math.random() * UA_POOL.length)];
+
 !(async () => {
   if (!USERNAME || !PASSWORD) {
     $.msg("MDL签到", "❌ 未配置账号", "请在 BoxJS 中填写用户名和密码");
@@ -87,8 +96,9 @@ async function doCheckin() {
     url: `${BASE_URL}/api/requests/auth`,
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": "Mozilla/5.0",
+      "User-Agent": USER_AGENT,
       "Accept": "*/*",
+      "Origin": BASE_URL,
       "Referer": `${BASE_URL}/?tab=profile`,
     },
     body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
@@ -109,7 +119,7 @@ async function doCheckin() {
   const infoResp = await request({
     method: "GET",
     url: `${BASE_URL}/api/user/points/info`,
-    headers: { "Cookie": cookie, "User-Agent": "Mozilla/5.0", "Accept": "*/*", "Referer": `${BASE_URL}/?tab=profile` },
+    headers: { "Cookie": cookie, "User-Agent": USER_AGENT, "Accept": "*/*", "Origin": BASE_URL, "Referer": `${BASE_URL}/?tab=profile` },
   });
 
   const infoData = safeJson(infoResp.body);
@@ -140,8 +150,9 @@ async function doCheckin() {
     headers: {
       "Cookie": cookie,
       "Content-Type": "application/json",
-      "User-Agent": "Mozilla/5.0",
+      "User-Agent": USER_AGENT,
       "Accept": "*/*",
+      "Origin": BASE_URL,
       "Referer": `${BASE_URL}/?tab=profile`,
     },
     body: "{}",
@@ -157,7 +168,7 @@ async function doCheckin() {
       const infoResp2 = await request({
         method: "GET",
         url: `${BASE_URL}/api/user/points/info`,
-        headers: { "Cookie": cookie, "User-Agent": "Mozilla/5.0", "Accept": "*/*" },
+        headers: { "Cookie": cookie, "User-Agent": USER_AGENT, "Accept": "*/*" },
       });
       const infoData2 = safeJson(infoResp2.body);
       total  = infoData2?.data?.points ?? "?";
