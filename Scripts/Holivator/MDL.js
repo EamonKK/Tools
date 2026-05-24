@@ -11,7 +11,7 @@
  * 0 8 * * * https://你的链接/gyq_saodu6_checkin.js, tag=gyq签到, enabled=true
  */
 
-const $ = new Env("gyq签到");
+const $ = new Env("MDL签到");
 
 const BASE_URL = "https://gyq.saodu6.wang:19999";
 const USERNAME = $.getdata("gyq_username");
