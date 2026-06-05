@@ -1,5 +1,5 @@
 /**
- * @author Eamon
+ * @author fmz200
  * @function 小红书去广告、净化、解除下载限制、画质增强等
  * @date 2026-06-05 16:00:00
  */
@@ -116,7 +116,7 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
       // 画质增强
       obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
       // 保存无水印信息
-      $.setdata(JSON.stringify(images_list), "eamon.xiaohongshu.feed.rsp");
+      $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
       console.log('已存储无水印信息♻️');
     }
   }
@@ -124,8 +124,8 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
 if (url.includes("/note/live_photo/save")) {
   console.log('原body：' + rsp_body);
-  const rsp = $.getdata("eamon.xiaohongshu.feed.rsp");
-  console.log("读取缓存key[eamon.xiaohongshu.feed.rsp]的值：" + rsp);
+  const rsp = $.getdata("fmz200.xiaohongshu.feed.rsp");
+  console.log("读取缓存key[fmz200.xiaohongshu.feed.rsp]的值：" + rsp);
   // console.log("读取缓存val：" + rsp);
   if (rsp == null || rsp.length === 0) {
     console.log('缓存无内容，返回原body');
@@ -146,7 +146,7 @@ if (url.includes("/note/live_photo/save")) {
   if (obj.data.datas) {
     replaceUrlContent(obj.data.datas, new_data);
   } else {
-    obj = {"code": 0, "success": true, "msg": " eamon创建响应体成功", "data": {"datas": new_data}};
+    obj = {"code": 0, "success": true, "msg": "fmz200创建响应体成功", "data": {"datas": new_data}};
   }
   console.log('新body：' + JSON.stringify(obj));
 } 
@@ -305,7 +305,7 @@ if (url.includes("/v6/homefeed")) {
 
 // 加载评论区
 if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/note/comment/sub_comments?")) {
-  replaceRedIdWithEamon (obj.data);
+  replaceRedIdWithFmz200(obj.data);
   let livePhotos = [];
   let commentVideos = [];
   let note_id = "";
@@ -357,7 +357,7 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
   // 存储评论实况照片
   if (livePhotos.length > 0) {
     let commitsRsp;
-    const commitsCache = $.getdata("eamon.xiaohongshu.comments.rsp");
+    const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
     console.log("读取缓存val：" + commitsCache);
     if (!commitsCache) {
       commitsRsp = {noteId: note_id, livePhotos: livePhotos};
@@ -373,13 +373,13 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       }
     }
     console.log("写入缓存val：" + JSON.stringify(commitsRsp));
-    $.setdata(JSON.stringify(commitsRsp), "eamon.xiaohongshu.comments.rsp");
+    $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
   }
 
   // 存储评论视频信息
   if (commentVideos.length > 0) {
     let videosCache;
-    const commitsCache = $.getdata("eamon.xiaohongshu.comments.videos.rsp");
+    const commitsCache = $.getdata("fmz200.xiaohongshu.comments.videos.rsp");
     if (!commitsCache) {
       videosCache = {noteId: note_id, videos: commentVideos};
     } else {
@@ -394,14 +394,14 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       }
     }
     console.log("[commentVideos]写入缓存val：" + JSON.stringify(videosCache));
-    $.setdata(JSON.stringify(videosCache), " eamon.xiaohongshu.comments.videos.rsp");
+    $.setdata(JSON.stringify(videosCache), "fmz200.xiaohongshu.comments.videos.rsp");
   }
 }
 
 // 下载评论区live图/评论区视频
 if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
-  const commitsCache = $.getdata("eamon.xiaohongshu.comments.rsp");
-  const commitsVideoCache = $.getdata("eamon.xiaohongshu.comments.videos.rsp");
+  const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
+  const commitsVideoCache = $.getdata("fmz200.xiaohongshu.comments.videos.rsp");
   console.log("读取缓存val：" + commitsCache);
   console.log("目标video_id：" + obj.data.video.video_id);
   if (commitsCache) {
@@ -442,7 +442,7 @@ function imageEnhance(jsonStr) {
     return [];
   }
 
-  const imageQuality = $.getdata("eamon.xiaohongshu.imageQuality");
+  const imageQuality = $.getdata("fmz200.xiaohongshu.imageQuality");
   console.log(`Image Quality: ${imageQuality}`);
   if (imageQuality === "original") { // 原始分辨率，PNG格式的图片，占用空间比较大
     console.log("画质设置为-原始分辨率");
@@ -480,7 +480,7 @@ function replaceUrlContent(collectionA, collectionB) {
       } else {
         itemA.url = itemB.url;
       }
-      itemA.author = "@Eamon"
+      itemA.author = "@fmz200"
     }
   });
 }
@@ -497,16 +497,16 @@ function deduplicateLivePhotos(livePhotos) {
   return livePhotos;
 }
 
-function replaceRedIdWithEamon (obj) {
+function replaceRedIdWithFmz200(obj) {
   if (Array.isArray(obj)) {
-    obj.forEach(item => replaceRedIdWithEamon (item));
+    obj.forEach(item => replaceRedIdWithFmz200(item));
   } else if (typeof obj === 'object' && obj !== null) {
     if ('red_id' in obj) {
-      obj.Eamon = obj.red_id; // 创建新属性Eamon
+      obj.fmz200 = obj.red_id; // 创建新属性fmz200
       delete obj.red_id; // 删除旧属性red_id
     }
     Object.keys(obj).forEach(key => {
-      replaceRedIdWithEamon(obj[key]);
+      replaceRedIdWithFmz200(obj[key]);
     });
   }
 }
