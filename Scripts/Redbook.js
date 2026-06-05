@@ -502,7 +502,7 @@ function replaceRedIdWithFmz200(obj) {
     obj.forEach(item => replaceRedIdWithFmz200(item));
   } else if (typeof obj === 'object' && obj !== null) {
     if ('red_id' in obj) {
-      obj.fmz200 = obj.red_id; // 创建新属性fmz200
+      obj.Eamon = obj.red_id; // 创建新属性fmz200
       delete obj.red_id; // 删除旧属性red_id
     }
     Object.keys(obj).forEach(key => {
