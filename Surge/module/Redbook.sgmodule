@@ -45,7 +45,7 @@ DOMAIN,ci.xiaohongshu.com,REJECT
 小红书_水印_3 = type=http-response,pattern=^https?:\/\/(edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(v2\/note\/feed|v3\/note\/videofeed)\?,requires-body=1,max-size=0,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,binary-body-mode=0
 小红书_水印_4 = type=http-response,pattern=^https?:\/\/(edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(v4\/note\/videofeed|v10\/note\/video\/save)\?,requires-body=1,max-size=0,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,binary-body-mode=0
 
-小红书_评论区用户ID = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/note\/comment\/list,requires-body=1,max-size=0,script-path=https://你的托管地址/xiaohongshu_comment_id.js,binary-body-mode=0
+小红书_评论区用户ID = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/note\/comment\/list,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js,binary-body-mode=0
 
 
 [MITM]
