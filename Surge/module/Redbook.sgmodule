@@ -45,10 +45,8 @@ DOMAIN,ci.xiaohongshu.com,REJECT
 小红书_水印_3 = type=http-response,pattern=^https?:\/\/(edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(v2\/note\/feed|v3\/note\/videofeed)\?,requires-body=1,max-size=0,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,binary-body-mode=0
 小红书_水印_4 = type=http-response,pattern=^https?:\/\/(edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(v4\/note\/videofeed|v10\/note\/video\/save)\?,requires-body=1,max-size=0,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,binary-body-mode=0
 
-# 评论区用户id置空（实验功能，需配合自定义脚本，原 QuantumultX 文本替换规则 Surge 不原生支持）
-# 原规则: ^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/note\/comment\/list url response-body red_id response-body fmz200
-# ⚠️ 注意: QuantumultX 的 response-body 文本替换功能 Surge 无原生对应，已跳过此规则。
-# 如需实现，请编写专用 JS 脚本。
+小红书_评论区用户ID = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/note\/comment\/list,requires-body=1,max-size=0,script-path=https://你的托管地址/xiaohongshu_comment_id.js,binary-body-mode=0
+
 
 [MITM]
-hostname = edith.xiaohongshu.com, www.xiaohongshu.com, ci.xiaohongshu.com, rec.xiaohongshu.com, so.xiaohongshu.com
+hostname = %APPEND% edith.xiaohongshu.com, www.xiaohongshu.com, ci.xiaohongshu.com, rec.xiaohongshu.com, so.xiaohongshu.com
