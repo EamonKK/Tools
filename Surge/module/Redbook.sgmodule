@@ -34,19 +34,19 @@ AND,((PROTOCOL,QUIC),(DOMAIN-SUFFIX,xiaohongshu.com)),REJECT
 
 [Script]
 # 搜索页
-小红书搜索页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/(banner|hot)_list, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书搜索页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/(banner|hot)_list, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
-小红书搜索页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/(hint|trending)\?, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书搜索页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/(hint|trending)\?, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
-小红书搜索页 = type=http-response, pattern=^https?:\/\/(so|edith)\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes\?, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书搜索页 = type=http-response, pattern=^https?:\/\/(so|edith)\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes\?, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
 # 开屏广告
-小红书开屏广告 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/config\?, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书开屏广告 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/config\?, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
-小红书开屏广告 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/splash_config, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书开屏广告 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/splash_config, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
 # 详情页,小部件
-小红书详情页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/note\/widgets, script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js, requires-body=true, timeout=60
+小红书详情页 = type=http-response, pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/note\/widgets, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
 
 # 图片水印,视频水印
 小红书图片视频水印 = type=http-response, pattern=^https?:\/\/(edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v\d+\/note\/(imagefeed|live_photo\/save), script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Redbook.js, requires-body=true, timeout=60
