@@ -14,7 +14,7 @@ DOMAIN,ads-video-qc.xhscdn.com,REJECT
 DOMAIN,t-ads.xiaohongshu.com,REJECT
 
 # 评论区图片水印
-DOMAIN,ci.xiaohongshu.com,REJECT-IMG
+DOMAIN,ci.xiaohongshu.com,REJECT
 
 [Script]
 # 惊喜弹窗
