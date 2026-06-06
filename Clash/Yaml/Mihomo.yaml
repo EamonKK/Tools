@@ -131,7 +131,7 @@ rules:
   - RULE-SET,Epic,暴雪游戏
   - RULE-SET,Emby,Netflix
   - RULE-SET,Spotify,Spotify
-  - RULE-SET,proxy,DIRECT
+  - RULE-SET,proxy,Google
   - RULE-SET,Netflix,Netflix
   - RULE-SET,Disney,Netflix
   - RULE-SET,PrimeVideo,Netflix
