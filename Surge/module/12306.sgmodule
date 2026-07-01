@@ -4,12 +4,12 @@
 #!icon=https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/12306.png
 #!openUrl=https://apps.apple.com/app/id564818797
 #!tag=去广告
-#!loon_version=3.2.4(787)
+#!loon_version=3.4.0(962)
 #!homepage=https://hub.kelee.one
-#!date=2026-03-14 07:41:44
+#!date=2026-06-01 17:11:35
 
 [Rule]
-DOMAIN,ad.12306.cn,DIRECT,extended-matching
+DOMAIN,ad.12306.cn,DIRECT
 
 [Body Rewrite]
 http-response-jq ^https:\/\/ad\.12306\.cn\/ad\/ser\/getAdList$ 'delpaths([["materialsList"]])'
