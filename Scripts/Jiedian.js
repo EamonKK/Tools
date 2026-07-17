@@ -21,7 +21,11 @@
  * server/port 的叶子节点，或者钻到底也没找到（这时远端探测会显示"跳过"，
  * 而不是误判为"不可达"）。
  *
- * 如果某一步返回的格式跟预期不一样，面板会直接把原始返回打出来，
+ * 已确认 smart 类型策略组无法通过 /v1/policy_groups/select 查到当前选中项
+ * （该接口只支持 select 等其他类型），遇到 smart 组会直接跳过远端探测并给出
+ * 明确原因，不会误判成"不可达"或"被墙"。
+ *
+ * 如果遇到其他没预料到的返回格式，面板会把原始返回（截断后）打出来，
  * 把内容发回来我再调整解析逻辑。
  */
 
@@ -160,25 +164,50 @@ function getPolicyDetail(name) {
   });
 }
 
+// 截断，避免超长内容在 Panel 卡片里渲染异常（实测过长内容会显示不全）
+function clip(s, len) {
+  s = String(s || "");
+  return s.length > len ? s.slice(0, len) + "…" : s;
+}
+
 // 从任意策略名（可能是叶子，也可能是嵌套的策略组）递归下钻，找到 server/port
+// 找不到时用 reason 给出人话原因，而不是甩一段原始 JSON
 function resolveToLeaf(name, depth) {
   depth = depth || 0;
   return getPolicyDetail(name).then(function (detail) {
     if (!detail.isGroup && detail.host && detail.port) {
-      return { host: detail.host, port: detail.port, leafName: name, raw: detail.raw };
+      return { host: detail.host, port: detail.port, leafName: name, reason: null };
     }
     if (depth >= MAX_RESOLVE_DEPTH) {
-      return { host: null, port: null, leafName: name, raw: detail.raw + "（已达最大递归深度）" };
+      return {
+        host: null, port: null, leafName: name,
+        reason: "递归超过 " + MAX_RESOLVE_DEPTH + " 层，停止下钻"
+      };
+    }
+    // smart 组已实测确认：/v1/policy_groups/select 不支持查询，直接给出明确原因，不再徒劳调用
+    if (detail.type === "smart") {
+      return {
+        host: null, port: null, leafName: name,
+        reason: "「" + name + "」是 smart 智能策略组，Surge 暂无接口可查询其当前实际选中的叶子节点"
+      };
     }
     if (detail.isGroup) {
       return resolveGroupToNode(name).then(function (r) {
         if (!r.name || r.name === name) {
-          return { host: null, port: null, leafName: name, raw: detail.raw + " | select接口返回：" + r.raw };
+          return {
+            host: null, port: null, leafName: name,
+            reason: "「" + name + "」是 " + detail.type + " 类型策略组，select 接口未返回有效的当前选中项",
+            raw: clip(r.raw, 150)
+          };
         }
         return resolveToLeaf(r.name, depth + 1);
       });
     }
-    return { host: null, port: null, leafName: name, raw: detail.raw };
+    return {
+      host: null, port: null, leafName: name,
+      reason: "未能识别「" + name + "」的类型，或解析不出 server/port",
+      raw: clip(detail.raw, 150)
+    };
   });
 }
 
@@ -327,8 +356,9 @@ function runOne(name) {
         lines.push("本机网络：" + (dOk ? "✅ 正常" : "❌ 异常"));
 
         if (!hasLeaf) {
-          lines.push("远端探测：⏭️ 跳过（解析不到具体服务器地址）");
-          lines.push("原始返回：" + leaf.raw);
+          lines.push("远端探测：⏭️ 跳过");
+          lines.push(leaf.reason || "解析不到具体服务器地址");
+          if (leaf.raw) lines.push("原始返回：" + leaf.raw);
         } else {
           lines.push("远端探测：" + (remote.ok ? "✅ 可达" : "❌ 不可达"));
           if (remote.items && remote.items.length > 0) {
