@@ -1,5 +1,5 @@
 /**
- * 节点阻断检测 - Surge Panel 版
+ * 节点阻断检测 - Surge Panel 版版
  * 改编自 Quantumult X 版 block_check.js（原作者 RavelloH，含 Globalping 国内定位版）
  *
  * 两种用法（在 argument 里二选一）：
@@ -174,16 +174,28 @@ function parsePolicyDetail(name, result) {
 }
 
 function getPolicyDetail(name) {
-  return new Promise(function (resolve) {
-    $httpAPI(
-      "GET",
-      "/v1/policies/detail?policy_name=" + encodeURIComponent(name),
-      {},
-      function (result) {
-        resolve(parsePolicyDetail(name, result));
-      }
-    );
-  });
+  // 节点名里常带表情符号、竖线等特殊字符，不同编码方式在 Surge 接口这边
+  // 匹配结果可能不一样，依次试，哪种能查到就用哪种
+  const encodings = [encodeURIComponent(name), encodeURI(name), name];
+  const tried = [];
+  encodings.forEach(function (e) { if (tried.indexOf(e) === -1) tried.push(e); });
+
+  function attempt(i) {
+    if (i >= tried.length) {
+      return Promise.resolve(parsePolicyDetail(name, { error: "已尝试 " + tried.length + " 种编码方式均查询失败" }));
+    }
+    return new Promise(function (resolve) {
+      $httpAPI("GET", "/v1/policies/detail?policy_name=" + tried[i], {}, function (result) {
+        if (result && result.error && i + 1 < tried.length) {
+          resolve(attempt(i + 1));
+        } else {
+          resolve(parsePolicyDetail(name, result));
+        }
+      });
+    });
+  }
+
+  return attempt(0);
 }
 
 function clip(s, len) {
