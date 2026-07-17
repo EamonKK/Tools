@@ -8,19 +8,29 @@
  *
  * 原理（和原脚本一致）：
  *   1. 本机直连测一次基线（不走代理）
- *   2. 对目标节点：走该节点请求一次 + 用 check-host.net 从全球多地探测节点服务器
+ *   2. 对目标节点：走该节点请求一次（policy 路由）+ 用 check-host.net 从全球多地探测其服务器
  *   3. 三者比对，区分"节点正常 / 疑似被墙 / 节点离线 / 本机网络异常"
  *
- * 调试机制：
- *   /v1/policy_groups/select 和 /v1/policies/detail 这两个接口的返回字段名
- *   没有实机验证过，是按大概率猜的。如果取不到值，面板会直接显示接口原始返回，
- *   把那段内容截图/复制发回来，我照真实结构把取值那两行改掉就行。
+ * 关键点：/v1/policies/detail 返回的不是结构化 JSON，而是该策略在配置文件里的
+ * 原始定义行文本，例如：
+ *   叶子节点： {"HK-01": "HK-01 = ss, 1.2.3.4, 443, encrypt-method=..., password=..."}
+ *   策略组：   {"香港": "香港 = smart, ..., include-other-group=\"A, B\", ..."}
+ * 所以按 Surge 配置行语法解析：第一个逗号前是类型，如果类型是已知的组类型
+ * （select/url-test/fallback/load-balance/ssid/smart），就当它是策略组，
+ * 用 /v1/policy_groups/select 查它当前指向谁，递归下钻，直到找到真正带
+ * server/port 的叶子节点，或者钻到底也没找到（这时远端探测会显示"跳过"，
+ * 而不是误判为"不可达"）。
+ *
+ * 如果某一步返回的格式跟预期不一样，面板会直接把原始返回打出来，
+ * 把内容发回来我再调整解析逻辑。
  */
 
 const IP_API = "http://ip-api.com/json?lang=zh-CN";
 const CHECK_HOST = "https://check-host.net";
 const TIMEOUT = 8000;
 const MAX_NODES_PER_RUN = 8;
+const MAX_RESOLVE_DEPTH = 4;
+const GROUP_TYPES = ["select", "url-test", "fallback", "load-balance", "ssid", "smart"];
 
 function run() {
   const params = parseArgs($argument);
@@ -103,6 +113,40 @@ function httpGet(url, policy) {
   });
 }
 
+// 解析 /v1/policies/detail 返回的原始定义行文本
+function parsePolicyDetail(name, result) {
+  const raw = result && (result[name] || result.policy || result.detail);
+  if (typeof raw !== "string") {
+    return { host: null, port: null, type: null, isGroup: null, raw: safeStringify(result) };
+  }
+  const eqIdx = raw.indexOf("=");
+  if (eqIdx === -1) return { host: null, port: null, type: null, isGroup: null, raw: raw };
+
+  const rest = raw.slice(eqIdx + 1);
+  const fields = rest.split(",").map(function (s) { return s.trim(); });
+  const type = (fields[0] || "").toLowerCase();
+  const isGroup = GROUP_TYPES.indexOf(type) !== -1;
+
+  if (isGroup) {
+    return { host: null, port: null, type: type, isGroup: true, raw: raw };
+  }
+
+  // 叶子节点：类型后面紧跟的位置字段（不含"="号的）一般是 server、port
+  const f1 = fields[1] || "";
+  const f2 = fields[2] || "";
+  const server = f1 && f1.indexOf("=") === -1 ? f1 : null;
+  const portRaw = f2 && f2.indexOf("=") === -1 ? f2 : null;
+  const port = portRaw ? parseInt(portRaw, 10) : null;
+
+  return {
+    host: server,
+    port: (port && !isNaN(port)) ? port : null,
+    type: type,
+    isGroup: false,
+    raw: raw
+  };
+}
+
 function getPolicyDetail(name) {
   return new Promise(function (resolve) {
     $httpAPI(
@@ -110,13 +154,31 @@ function getPolicyDetail(name) {
       "/v1/policies/detail?policy_name=" + encodeURIComponent(name),
       {},
       function (result) {
-        const r = result || {};
-        const host = r.server || r.host || r.hostname
-          || (r.detail && (r.detail.server || r.detail.host));
-        const port = r.port || (r.detail && r.detail.port);
-        resolve({ host: host, port: port, raw: safeStringify(result) });
+        resolve(parsePolicyDetail(name, result));
       }
     );
+  });
+}
+
+// 从任意策略名（可能是叶子，也可能是嵌套的策略组）递归下钻，找到 server/port
+function resolveToLeaf(name, depth) {
+  depth = depth || 0;
+  return getPolicyDetail(name).then(function (detail) {
+    if (!detail.isGroup && detail.host && detail.port) {
+      return { host: detail.host, port: detail.port, leafName: name, raw: detail.raw };
+    }
+    if (depth >= MAX_RESOLVE_DEPTH) {
+      return { host: null, port: null, leafName: name, raw: detail.raw + "（已达最大递归深度）" };
+    }
+    if (detail.isGroup) {
+      return resolveGroupToNode(name).then(function (r) {
+        if (!r.name || r.name === name) {
+          return { host: null, port: null, leafName: name, raw: detail.raw + " | select接口返回：" + r.raw };
+        }
+        return resolveToLeaf(r.name, depth + 1);
+      });
+    }
+    return { host: null, port: null, leafName: name, raw: detail.raw };
   });
 }
 
@@ -179,12 +241,16 @@ function checkHostProbe(host, port) {
     .catch(function (e) { return { ok: false, items: [], raw: "提交探测失败: " + e }; });
 }
 
+// rOk 是三态：true 可达 / false 测了但不可达 / null 没能测（无法下结论）
 function diagnose(dOk, nOk, rOk) {
   if (!dOk) return "⚠️ 本机网络异常";
+  if (rOk === null || rOk === undefined) {
+    return nOk ? "✅ 节点连接正常（未做远端交叉验证）" : "❓ 节点不可达，且无法交叉验证，无法判断是否被墙";
+  }
   if (nOk && rOk) return "✅ 正常";
   if (!nOk && rOk) return "🚫 疑似被运营商/GFW阻断";
   if (!nOk && !rOk) return "💤 离线或无法探测";
-  return "❓ 数据不完整（节点通但远端探测拿不到结果，见下方原始返回）";
+  return "❓ 数据不完整";
 }
 
 // 批量模式（nodes 传多个）：多个节点一次刷新，每个节点压缩成一行
@@ -213,12 +279,17 @@ function runBatch(nodes) {
 }
 
 function checkNodeCompact(name, dOk) {
-  return getPolicyDetail(name).then(function (detail) {
-    const pNode = httpGet(IP_API, name).then(function () { return true; }, function () { return false; });
-    const pRemote = checkHostProbe(detail.host, detail.port);
-    return Promise.all([pNode, pRemote]).then(function (r) {
-      const nOk = r[0], rOk = r[1].ok;
-      return name + "：" + diagnose(dOk, nOk, rOk);
+  const pNode = httpGet(IP_API, name).then(function () { return true; }, function () { return false; });
+  const pLeaf = resolveToLeaf(name);
+
+  return Promise.all([pNode, pLeaf]).then(function (r) {
+    const nOk = r[0];
+    const leaf = r[1];
+    if (!leaf.host || !leaf.port) {
+      return name + "：" + diagnose(dOk, nOk, null);
+    }
+    return checkHostProbe(leaf.host, leaf.port).then(function (remote) {
+      return name + "：" + diagnose(dOk, nOk, remote.ok);
     });
   });
 }
@@ -229,26 +300,23 @@ function runOne(name) {
     function () { return true; },
     function () { return false; }
   ).then(function (dOk) {
-    getPolicyDetail(name).then(function (detail) {
-      if (!detail.host || !detail.port) {
-        $done({
-          title: "🌐 节点阻断检测 · 调试",
-          content: "节点：" + name + "\n取不到 host/port\n原始返回：\n" + detail.raw
-        });
-        return;
-      }
+    const pNode = httpGet(IP_API, name)
+      .then(function (body) { return { ok: true, data: JSON.parse(body) }; })
+      .catch(function () { return { ok: false }; });
+    const pLeaf = resolveToLeaf(name);
 
-      const pNode = httpGet(IP_API, name)
-        .then(function (body) { return { ok: true, data: JSON.parse(body) }; })
-        .catch(function () { return { ok: false }; });
-      const pRemote = checkHostProbe(detail.host, detail.port);
+    Promise.all([pNode, pLeaf]).then(function (r) {
+      const node = r[0];
+      const leaf = r[1];
+      const hasLeaf = !!(leaf.host && leaf.port);
+      const pRemote = hasLeaf ? checkHostProbe(leaf.host, leaf.port) : Promise.resolve(null);
 
-      Promise.all([pNode, pRemote]).then(function (r) {
-        const node = r[0];
-        const remote = r[1];
+      pRemote.then(function (remote) {
         const lines = [];
-
         lines.push("节点：" + name);
+        if (hasLeaf && leaf.leafName !== name) {
+          lines.push("（远端探测实际走：" + leaf.leafName + "）");
+        }
         lines.push("节点代理：" + (node.ok ? "✅ 正常" : "❌ 不可达"));
         if (node.ok && node.data) {
           const d = node.data;
@@ -257,21 +325,24 @@ function runOne(name) {
           lines.push("ISP：" + (d.isp || "未知"));
         }
         lines.push("本机网络：" + (dOk ? "✅ 正常" : "❌ 异常"));
-        lines.push("远端探测：" + (remote.ok ? "✅ 可达" : "❌ 不可达"));
 
-        if (remote.items && remote.items.length > 0) {
-          for (let i = 0; i < remote.items.length; i += 2) {
-            const left = remote.items[i];
-            const right = i + 1 < remote.items.length ? remote.items[i + 1] : null;
-            let line = left.flag + " " + formatMs(left.ms);
-            if (right) line += "    " + right.flag + " " + formatMs(right.ms);
-            lines.push(line);
+        if (!hasLeaf) {
+          lines.push("远端探测：⏭️ 跳过（解析不到具体服务器地址）");
+          lines.push("原始返回：" + leaf.raw);
+        } else {
+          lines.push("远端探测：" + (remote.ok ? "✅ 可达" : "❌ 不可达"));
+          if (remote.items && remote.items.length > 0) {
+            for (let i = 0; i < remote.items.length; i += 2) {
+              const left = remote.items[i];
+              const right = i + 1 < remote.items.length ? remote.items[i + 1] : null;
+              let line = left.flag + " " + formatMs(left.ms);
+              if (right) line += "    " + right.flag + " " + formatMs(right.ms);
+              lines.push(line);
+            }
           }
-        } else if (!remote.ok) {
-          lines.push("（探测无结果，原始返回：" + remote.raw + "）");
         }
 
-        lines.push("诊断：" + diagnose(dOk, node.ok, remote.ok));
+        lines.push("诊断：" + diagnose(dOk, node.ok, hasLeaf ? remote.ok : null));
 
         $done({
           title: "🌐 节点阻断检测 · " + timeNow(),
