@@ -2,9 +2,12 @@
  * 节点阻断检测 - Surge Panel 版
  * 改编自 Quantumult X 版 block_check.js（原作者 RavelloH，含 Globalping 国内定位版）
  *
- * 两种用法（在 argument 里二选一）：
- *   1. 检测策略组当前选中的节点：       group=Proxy （仅支持 select 手动选择类型的组）
- *   2. 固定检测一批节点：               nodes=HK-01,US-02,JP-03
+ * 用法：argument 里传 nodes=节点名，逗号分隔（通常填一个，测单个节点）：
+ *   nodes=🇭🇰 香港 Y09 | IEPL
+ * 装好模块后在 Surge 的模块设置里随时改这个值，不用重新导入文件。
+ * 填的必须是真实的叶子节点名（ss/vmess/trojan/vless 等），不支持填策略组名——
+ * 之前试过自动解析策略组当前选中的节点，链路太脆弱（尤其是嵌套的 smart 智能组），
+ * 所以简化成直接指定具体节点，更稳定。
  *
  * 原理：
  *   1. 本机直连测一次基线（不走代理）
@@ -16,16 +19,13 @@
  *      / "只有部分运营商不通=运营商级拦截" / "三家都通=不是被墙，查客户端配置"
  *      （仅单节点视图会做这步，批量模式为了保持每行一条的紧凑格式，不触发）
  *
- * 关键点：/v1/policies/detail 返回的不是结构化 JSON，而是该策略在配置文件里的
- * 原始定义行文本，例如：
- *   叶子节点： {"HK-01": "HK-01 = ss, 1.2.3.4, 443, encrypt-method=..., password=..."}
- *   策略组：   {"香港": "香港 = smart, ..., include-other-group=\"A, B\", ..."}
- * 所以按 Surge 配置行语法解析：第一个逗号前是类型，如果类型是已知的组类型
- * （select/url-test/fallback/load-balance/ssid/smart），就当它是策略组，
- * 用 /v1/policy_groups/select 查它当前指向谁，递归下钻，直到找到真正带
- * server/port 的叶子节点，或者钻到底也没找到（这时远端探测会显示"跳过"，
- * 而不是误判为"不可达"）。已实测确认 smart 类型查不到当前选中项，会直接
- * 给出原因，不再徒劳调用接口。
+ * 关键点：策略详情不是结构化 JSON，而是该策略在配置文件里的原始定义行文本，
+ * 例如 {"HK-01": "HK-01 = ss, 1.2.3.4, 443, encrypt-method=..., password=..."}。
+ * 用 GET /v1/policies 一次性拉全量列表本地按 key 查找（而不是逐个按名字查询），
+ * 绕开了节点名里表情符号/竖线等特殊字符导致按名查询匹配不上的问题；
+ * 查找时还做了去空白+Unicode标准化的兜底匹配。
+ * 如果给的名字实际是个策略组（而不是叶子节点），会直接提示改填具体节点名，
+ * 不会尝试往下钻。
  *
  * 如果遇到没预料到的返回格式，面板会把原始返回（截断后）打出来，
  * 把内容发回来我再调整解析逻辑。
@@ -37,25 +37,10 @@ const GP_API = "https://api.globalping.io/v1/measurements";
 const TIMEOUT = 8000;
 const GP_TIMEOUT = 10000;
 const MAX_NODES_PER_RUN = 8;
-const MAX_RESOLVE_DEPTH = 4;
 const GROUP_TYPES = ["select", "url-test", "fallback", "load-balance", "ssid", "smart"];
 
 function run() {
   const params = parseArgs($argument);
-
-  if (params.group) {
-    resolveGroupToNode(params.group).then(function (r) {
-      if (!r.name) {
-        $done({
-          title: "🌐 节点阻断检测 · 调试",
-          content: "策略组「" + params.group + "」没取到当前选中节点\n原始返回：\n" + r.raw
-        });
-        return;
-      }
-      runOne(r.name);
-    });
-    return;
-  }
 
   const nodes = (params.nodes || "")
     .split(",")
@@ -65,7 +50,7 @@ function run() {
   if (nodes.length === 0) {
     $done({
       title: "🌐 节点阻断检测",
-      content: "未配置 group= 或 nodes=，见脚本头部注释"
+      content: "未配置 nodes=，见脚本头部注释"
     });
     return;
   }
@@ -90,21 +75,6 @@ function parseArgs(argStr) {
 
 function safeStringify(obj) {
   try { return JSON.stringify(obj); } catch (e) { return String(obj); }
-}
-
-function resolveGroupToNode(groupName) {
-  return new Promise(function (resolve) {
-    $httpAPI(
-      "GET",
-      "/v1/policy_groups/select?group_name=" + encodeURIComponent(groupName),
-      {},
-      function (result) {
-        const r = result || {};
-        const name = r.policy || r.selected || r.now || r.policy_name || null;
-        resolve({ name: name, raw: safeStringify(result) });
-      }
-    );
-  });
 }
 
 function httpGet(url, policy) {
@@ -140,11 +110,37 @@ function httpPost(url, bodyObj, policy, timeoutMs) {
   });
 }
 
-// 解析 /v1/policies/detail 返回的原始定义行文本
+function normalizeKey(s) {
+  s = String(s || "");
+  try { s = s.normalize("NFC"); } catch (e) { /* 环境不支持 normalize 就跳过 */ }
+  return s.trim();
+}
+
+// 精确匹配优先；失败时按"去空白+Unicode标准化"再比一次，
+// 防止 select 接口返回的名字和 /v1/policies 列表里的 key 之间有肉眼不可见的字符差异
+function findPolicyRaw(name, all) {
+  if (!all || typeof all !== "object") return null;
+  if (typeof all[name] === "string") return all[name];
+
+  const target = normalizeKey(name);
+  const keys = Object.keys(all);
+  for (let i = 0; i < keys.length; i++) {
+    if (typeof all[keys[i]] === "string" && normalizeKey(keys[i]) === target) {
+      return all[keys[i]];
+    }
+  }
+  return null;
+}
+
+// 解析策略的原始定义行文本（来自全量列表 /v1/policies 或单条 /v1/policies/detail）
 function parsePolicyDetail(name, result) {
-  const raw = result && (result[name] || result.policy || result.detail);
+  const raw = findPolicyRaw(name, result) || (result && (result.policy || result.detail));
   if (typeof raw !== "string") {
-    return { host: null, port: null, type: null, isGroup: null, raw: safeStringify(result) };
+    const count = (result && typeof result === "object") ? Object.keys(result).length : 0;
+    return {
+      host: null, port: null, type: null, isGroup: null,
+      raw: "在返回的 " + count + " 条策略里找不到「" + name + "」这个 key，原始返回：" + clip(safeStringify(result), 200)
+    };
   }
   const eqIdx = raw.indexOf("=");
   if (eqIdx === -1) return { host: null, port: null, type: null, isGroup: null, raw: raw };
@@ -173,29 +169,24 @@ function parsePolicyDetail(name, result) {
   };
 }
 
-function getPolicyDetail(name) {
-  // 节点名里常带表情符号、竖线等特殊字符，不同编码方式在 Surge 接口这边
-  // 匹配结果可能不一样，依次试，哪种能查到就用哪种
-  const encodings = [encodeURIComponent(name), encodeURI(name), name];
-  const tried = [];
-  encodings.forEach(function (e) { if (tried.indexOf(e) === -1) tried.push(e); });
-
-  function attempt(i) {
-    if (i >= tried.length) {
-      return Promise.resolve(parsePolicyDetail(name, { error: "已尝试 " + tried.length + " 种编码方式均查询失败" }));
-    }
-    return new Promise(function (resolve) {
-      $httpAPI("GET", "/v1/policies/detail?policy_name=" + tried[i], {}, function (result) {
-        if (result && result.error && i + 1 < tried.length) {
-          resolve(attempt(i + 1));
-        } else {
-          resolve(parsePolicyDetail(name, result));
-        }
-      });
+// 一次性拉全量策略列表并缓存（同一次脚本执行内，递归多次也只请求一次）
+let _allPoliciesCache = null;
+function getAllPolicies() {
+  if (_allPoliciesCache) return Promise.resolve(_allPoliciesCache);
+  return new Promise(function (resolve) {
+    $httpAPI("GET", "/v1/policies", {}, function (result) {
+      _allPoliciesCache = result || {};
+      resolve(_allPoliciesCache);
     });
-  }
+  });
+}
 
-  return attempt(0);
+// 改成从全量列表里本地按 key 查找，不再按名字单独发请求——
+// 彻底绕开节点名里表情符号/竖线等特殊字符导致按名查询匹配不上的问题
+function getPolicyDetail(name) {
+  return getAllPolicies().then(function (all) {
+    return parsePolicyDetail(name, all);
+  });
 }
 
 function clip(s, len) {
@@ -203,35 +194,18 @@ function clip(s, len) {
   return s.length > len ? s.slice(0, len) + "…" : s;
 }
 
-function resolveToLeaf(name, depth) {
-  depth = depth || 0;
+// 只做一层判断：给定的名字要么是能直接拿到 server/port 的叶子节点，
+// 要么给出明确原因（不再尝试往策略组里下钻，NODES 参数需要直接填具体节点名）
+function resolveToLeaf(name) {
   return getPolicyDetail(name).then(function (detail) {
     if (!detail.isGroup && detail.host && detail.port) {
       return { host: detail.host, port: detail.port, leafName: name, reason: null };
     }
-    if (depth >= MAX_RESOLVE_DEPTH) {
-      return {
-        host: null, port: null, leafName: name,
-        reason: "递归超过 " + MAX_RESOLVE_DEPTH + " 层，停止下钻"
-      };
-    }
-    if (detail.type === "smart") {
-      return {
-        host: null, port: null, leafName: name,
-        reason: "「" + name + "」是 smart 智能策略组，Surge 暂无接口可查询其当前实际选中的叶子节点"
-      };
-    }
     if (detail.isGroup) {
-      return resolveGroupToNode(name).then(function (r) {
-        if (!r.name || r.name === name) {
-          return {
-            host: null, port: null, leafName: name,
-            reason: "「" + name + "」是 " + detail.type + " 类型策略组，select 接口未返回有效的当前选中项",
-            raw: clip(r.raw, 150)
-          };
-        }
-        return resolveToLeaf(r.name, depth + 1);
-      });
+      return {
+        host: null, port: null, leafName: name,
+        reason: "「" + name + "」是策略组（" + detail.type + " 类型），不是具体节点，NODES 参数需要填一个真实的叶子节点名"
+      };
     }
     return {
       host: null, port: null, leafName: name,
@@ -404,11 +378,11 @@ function diagnose(dOk, nOk, rOk, gpAnalysis) {
     return nOk ? "✅ 节点连接正常（未做远端交叉验证）" : "❓ 节点不可达，且无法交叉验证，无法判断是否被墙";
   }
   if (nOk && rOk) return "✅ 正常";
+  if (nOk && !rOk) return "✅ 节点连接正常（远端探测被拒，多为服务器防扫描策略，不代表被墙）";
   if (!nOk && rOk) {
     return (gpAnalysis && gpAnalysis.conclusion) ? gpAnalysis.conclusion : "🚫 疑似被运营商/GFW阻断";
   }
-  if (!nOk && !rOk) return "💤 离线或无法探测";
-  return "❓ 数据不完整";
+  return "💤 离线或无法探测"; // !nOk && !rOk
 }
 
 // 批量模式（nodes 传多个）：每个节点压缩成一行，不做 Globalping 深挖（保持紧凑）
