@@ -73,10 +73,6 @@ function parseArgs(argStr) {
   return params;
 }
 
-function safeStringify(obj) {
-  try { return JSON.stringify(obj); } catch (e) { return String(obj); }
-}
-
 function httpGet(url, policy) {
   return new Promise(function (resolve, reject) {
     const opts = { url: url, timeout: TIMEOUT };
@@ -110,37 +106,17 @@ function httpPost(url, bodyObj, policy, timeoutMs) {
   });
 }
 
-function normalizeKey(s) {
+function clip(s, len) {
   s = String(s || "");
-  try { s = s.normalize("NFC"); } catch (e) { /* 环境不支持 normalize 就跳过 */ }
-  return s.trim();
+  return s.length > len ? s.slice(0, len) + "…" : s;
 }
 
-// 精确匹配优先；失败时按"去空白+Unicode标准化"再比一次，
-// 防止 select 接口返回的名字和 /v1/policies 列表里的 key 之间有肉眼不可见的字符差异
-function findPolicyRaw(name, all) {
-  if (!all || typeof all !== "object") return null;
-  if (typeof all[name] === "string") return all[name];
-
-  const target = normalizeKey(name);
-  const keys = Object.keys(all);
-  for (let i = 0; i < keys.length; i++) {
-    if (typeof all[keys[i]] === "string" && normalizeKey(keys[i]) === target) {
-      return all[keys[i]];
-    }
-  }
-  return null;
-}
-
-// 解析策略的原始定义行文本（来自全量列表 /v1/policies 或单条 /v1/policies/detail）
+// 解析 /v1/policies/detail?policy_name=X 返回的原始定义行文本
+// 形如 {"节点名": "节点名 = ss, 1.2.3.4, 443, encrypt-method=..., password=..."}
 function parsePolicyDetail(name, result) {
-  const raw = findPolicyRaw(name, result) || (result && (result.policy || result.detail));
+  const raw = result && (typeof result[name] === "string" ? result[name] : (result.policy || result.detail));
   if (typeof raw !== "string") {
-    const count = (result && typeof result === "object") ? Object.keys(result).length : 0;
-    return {
-      host: null, port: null, type: null, isGroup: null,
-      raw: "在返回的 " + count + " 条策略里找不到「" + name + "」这个 key，原始返回：" + clip(safeStringify(result), 200)
-    };
+    return { host: null, port: null, type: null, isGroup: null, raw: null };
   }
   const eqIdx = raw.indexOf("=");
   if (eqIdx === -1) return { host: null, port: null, type: null, isGroup: null, raw: raw };
@@ -169,29 +145,67 @@ function parsePolicyDetail(name, result) {
   };
 }
 
-// 一次性拉全量策略列表并缓存（同一次脚本执行内，递归多次也只请求一次）
-let _allPoliciesCache = null;
-function getAllPolicies() {
-  if (_allPoliciesCache) return Promise.resolve(_allPoliciesCache);
+// /v1/policies（不带 policy_name）返回的是纯名字清单，不是详情：
+// {"proxies": ["名字1", "名字2", ...], "policy-groups": ["组名1", ...]}
+// 只用来核实"这个名字到底存不存在、属于哪一类"，取不到 server/port
+let _allPolicyNamesCache = null;
+function getAllPolicyNames() {
+  if (_allPolicyNamesCache) return Promise.resolve(_allPolicyNamesCache);
   return new Promise(function (resolve) {
     $httpAPI("GET", "/v1/policies", {}, function (result) {
-      _allPoliciesCache = result || {};
-      resolve(_allPoliciesCache);
+      const r = result || {};
+      _allPolicyNamesCache = {
+        proxies: Array.isArray(r.proxies) ? r.proxies : [],
+        groups: Array.isArray(r["policy-groups"]) ? r["policy-groups"] : []
+      };
+      resolve(_allPolicyNamesCache);
     });
   });
 }
 
-// 改成从全量列表里本地按 key 查找，不再按名字单独发请求——
-// 彻底绕开节点名里表情符号/竖线等特殊字符导致按名查询匹配不上的问题
-function getPolicyDetail(name) {
-  return getAllPolicies().then(function (all) {
-    return parsePolicyDetail(name, all);
+// 详情接口查不到时，去名字清单里核实一下，给出准确原因而不是含糊的"未能识别"
+function diagnoseNotFound(name) {
+  return getAllPolicyNames().then(function (lists) {
+    if (lists.proxies.indexOf(name) !== -1) {
+      return {
+        host: null, port: null, type: "proxy", isGroup: false,
+        raw: "「" + name + "」确实是已配置的叶子节点（在 /v1/policies 的 proxies 清单里能找到），"
+          + "但 /v1/policies/detail 接口查不到它的详情——目前看是节点名里带竖线时 Surge 这个接口内部匹配会失败，"
+          + "这是接口本身的限制，不是名字填错了"
+      };
+    }
+    if (lists.groups.indexOf(name) !== -1) {
+      return { host: null, port: null, type: "group", isGroup: true, raw: "「" + name + "」是一个策略组，不是叶子节点" };
+    }
+    return {
+      host: null, port: null, type: null, isGroup: null,
+      raw: "「" + name + "」在 proxies 和 policy-groups 清单里都没找到，检查一下是否完整复制了名字（空格、表情符号）"
+    };
   });
 }
 
-function clip(s, len) {
-  s = String(s || "");
-  return s.length > len ? s.slice(0, len) + "…" : s;
+// 按名字查详情，依次尝试几种编码方式；全部失败再去名字清单核实原因
+function getPolicyDetail(name) {
+  const encodings = [encodeURIComponent(name), encodeURI(name), name];
+  const tried = [];
+  encodings.forEach(function (e) { if (tried.indexOf(e) === -1) tried.push(e); });
+
+  function attempt(i) {
+    return new Promise(function (resolve) {
+      $httpAPI("GET", "/v1/policies/detail?policy_name=" + tried[i], {}, function (result) {
+        const hasError = result && result.error;
+        if (hasError && i + 1 < tried.length) {
+          resolve(attempt(i + 1));
+        } else if (hasError) {
+          resolve(diagnoseNotFound(name));
+        } else {
+          resolve(parsePolicyDetail(name, result));
+        }
+      });
+    });
+  }
+
+  return attempt(0);
 }
 
 // 只做一层判断：给定的名字要么是能直接拿到 server/port 的叶子节点，
@@ -204,13 +218,12 @@ function resolveToLeaf(name) {
     if (detail.isGroup) {
       return {
         host: null, port: null, leafName: name,
-        reason: "「" + name + "」是策略组（" + detail.type + " 类型），不是具体节点，NODES 参数需要填一个真实的叶子节点名"
+        reason: "「" + name + "」是策略组" + (detail.type ? "（" + detail.type + " 类型）" : "") + "，不是具体节点，NODES 需要填一个真实的叶子节点名"
       };
     }
     return {
       host: null, port: null, leafName: name,
-      reason: "未能识别「" + name + "」的类型，或解析不出 server/port",
-      raw: clip(detail.raw, 150)
+      reason: detail.raw ? clip(detail.raw, 200) : ("未能识别「" + name + "」的类型，或解析不出 server/port")
     };
   });
 }
@@ -467,7 +480,6 @@ function runOne(name) {
           if (!hasLeaf) {
             lines.push("远端探测：⏭️ 跳过");
             lines.push(leaf.reason || "解析不到具体服务器地址");
-            if (leaf.raw) lines.push("原始返回：" + leaf.raw);
           } else {
             lines.push("远端探测：" + (remote.ok ? "✅ 可达" : "❌ 不可达"));
             if (remote.items && remote.items.length > 0) {
