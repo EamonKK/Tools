@@ -1,5 +1,5 @@
 /**
- * 节点阻断检测 - Surge Panel 版版
+ * 节点阻断检测 - Surge Panel 版
  * 改编自 Quantumult X 版 block_check.js（原作者 RavelloH，含 Globalping 国内定位版）
  *
  * 两种用法（在 argument 里二选一）：
