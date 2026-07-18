@@ -1,13 +1,17 @@
 /**
- * 节点阻断检测 - Surge Panel 版
+ * 节点阻断检测 - Surge Panel 版2
  * 改编自 Quantumult X 版 block_check.js（原作者 RavelloH，含 Globalping 国内定位版）
  *
- * 用法：argument 里传 nodes=节点名，逗号分隔（通常填一个，测单个节点）：
+ * 用法：argument 里传 nodes=节点名（单个节点测试用）：
  *   nodes=🇭🇰 香港 Y09 | IEPL
  * 装好模块后在 Surge 的模块设置里随时改这个值，不用重新导入文件。
- * 填的必须是真实的叶子节点名（ss/vmess/trojan/vless 等），不支持填策略组名——
- * 之前试过自动解析策略组当前选中的节点，链路太脆弱（尤其是嵌套的 smart 智能组），
- * 所以简化成直接指定具体节点，更稳定。
+ *
+ * 可选：target=host:port，手动指定远端探测（check-host.net）要测的服务器地址。
+ * 填了就直接用，不再尝试自动查询该节点的 server/port。
+ * Surge 不像 QX/Loon 那样在触发脚本时会把节点的地址信息直接传进来
+ * （两边都有 $configuration.sendMessage / $environment.params.nodeInfo 这类原生接口），
+ * Surge 只能反查 /v1/policies/detail，而这个接口对名字里带竖线等特殊字符的节点
+ * 经常识别不了（Surge 接口本身的限制），这种情况下 target= 是最可靠的解法。
  *
  * 原理：
  *   1. 本机直连测一次基线（不走代理）
@@ -56,7 +60,7 @@ function run() {
   }
 
   if (nodes.length === 1) {
-    runOne(nodes[0]);
+    runOne(nodes[0], parseHostPort(params.target));
   } else {
     runBatch(nodes);
   }
@@ -71,6 +75,18 @@ function parseArgs(argStr) {
     params[pair.slice(0, idx)] = pair.slice(idx + 1);
   });
   return params;
+}
+
+// 解析手动填写的 "host:port"，格式不对就返回 null（走自动解析那条路）
+function parseHostPort(s) {
+  s = decodeURIComponent((s || "").trim());
+  if (!s) return null;
+  const idx = s.lastIndexOf(":");
+  if (idx === -1) return null;
+  const host = s.slice(0, idx).trim();
+  const port = parseInt(s.slice(idx + 1).trim(), 10);
+  if (!host || !port || isNaN(port)) return null;
+  return { host: host, port: port };
 }
 
 function httpGet(url, policy) {
@@ -464,7 +480,7 @@ function checkNodeCompact(name, dOk) {
 }
 
 // 单节点模式（group= 或单个 nodes 走这里）：信息给全，命中疑似被墙时追加 Globalping 深挖
-function runOne(name) {
+function runOne(name, targetOverride) {
   httpGet(IP_API, null).then(
     function () { return true; },
     function () { return false; }
@@ -472,7 +488,9 @@ function runOne(name) {
     const pNode = httpGet(IP_API, name)
       .then(function (body) { return { ok: true, data: JSON.parse(body) }; })
       .catch(function () { return { ok: false }; });
-    const pLeaf = resolveToLeaf(name);
+    const pLeaf = targetOverride
+      ? Promise.resolve({ host: targetOverride.host, port: targetOverride.port, leafName: name, reason: null, manual: true })
+      : resolveToLeaf(name);
 
     Promise.all([pNode, pLeaf]).then(function (r) {
       const node = r[0];
@@ -489,7 +507,9 @@ function runOne(name) {
           const lines = [];
 
           lines.push("节点：" + name);
-          if (hasLeaf && leaf.leafName !== name) {
+          if (hasLeaf && leaf.manual) {
+            lines.push("（远端探测目标手动指定：" + leaf.host + ":" + leaf.port + "）");
+          } else if (hasLeaf && leaf.leafName !== name) {
             lines.push("（远端探测实际走：" + leaf.leafName + "）");
           }
           lines.push("节点代理：" + (node.ok ? "✅ 正常" : "❌ 不可达"));
