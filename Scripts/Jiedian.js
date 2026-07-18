@@ -1,5 +1,5 @@
 /**
- * 节点阻断检测 - Surge Panel 版版
+ * 节点阻断检测 - Surge Panel 版
  * 改编自 Quantumult X 版 block_check.js（原作者 RavelloH，含 Globalping 国内定位版）
  *
  * 用法：argument 里传 nodes=节点名，逗号分隔（通常填一个，测单个节点）：
@@ -241,6 +241,10 @@ function formatMs(ms) {
 }
 
 // 返回 { ok, items: [{flag, ms}], raw }
+// 提交后可能有探针还没返回，等太短就下结论容易把"还没测完"误判成"不可达"。
+// 多轮询几次：只要测到可达就立刻停，否则最多等 3.5+3+3=9.5 秒
+const CHECK_HOST_POLL_DELAYS = [3500, 3000, 3000];
+
 function checkHostProbe(host, port) {
   if (!host || !port) return Promise.resolve({ ok: false, items: [], raw: "(未取到 host/port，跳过探测)" });
 
@@ -260,31 +264,51 @@ function checkHostProbe(host, port) {
         if (info && info.length >= 1) countryMap[n] = info[0];
       });
 
-      return new Promise(function (resolve) {
-        setTimeout(function () {
-          httpGet(CHECK_HOST + "/check-result/" + d.request_id, null)
-            .then(function (body2) {
-              const res = JSON.parse(body2);
-              let reachable = false;
-              const items = [];
-              nodeNames.forEach(function (n) {
-                const cc = countryMap[n] || "";
-                const flag = cc ? getFlag(cc) : "🌍";
-                const nr = res[n];
-                let ms = null;
-                if (nr && Array.isArray(nr) && nr[0] && nr[0].time !== undefined) {
-                  reachable = true;
-                  ms = nr[0].time * 1000;
-                }
-                items.push({ flag: flag, ms: ms });
-              });
-              resolve({ ok: reachable, items: items, raw: body2 });
-            })
-            .catch(function (e) { resolve({ ok: false, items: [], raw: "查询结果失败: " + e }); });
-        }, 3500);
-      });
+      return pollCheckHostResult(d.request_id, nodeNames, countryMap, 0);
     })
     .catch(function (e) { return { ok: false, items: [], raw: "提交探测失败: " + e }; });
+}
+
+function pollCheckHostResult(requestId, nodeNames, countryMap, attempt) {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      httpGet(CHECK_HOST + "/check-result/" + requestId, null)
+        .then(function (body2) {
+          const res = JSON.parse(body2);
+          let reachable = false;
+          let allResolved = true;
+          const items = [];
+          nodeNames.forEach(function (n) {
+            const cc = countryMap[n] || "";
+            const flag = cc ? getFlag(cc) : "🌍";
+            const nr = res[n];
+            let ms = null;
+            if (nr && Array.isArray(nr) && nr[0] && nr[0].time !== undefined) {
+              reachable = true;
+              ms = nr[0].time * 1000;
+            } else {
+              allResolved = false;
+            }
+            items.push({ flag: flag, ms: ms });
+          });
+
+          const isLastAttempt = attempt >= CHECK_HOST_POLL_DELAYS.length - 1;
+          if (reachable || allResolved || isLastAttempt) {
+            resolve({ ok: reachable, items: items, raw: body2 });
+          } else {
+            resolve(pollCheckHostResult(requestId, nodeNames, countryMap, attempt + 1));
+          }
+        })
+        .catch(function (e) {
+          const isLastAttempt = attempt >= CHECK_HOST_POLL_DELAYS.length - 1;
+          if (isLastAttempt) {
+            resolve({ ok: false, items: [], raw: "查询结果失败: " + e });
+          } else {
+            resolve(pollCheckHostResult(requestId, nodeNames, countryMap, attempt + 1));
+          }
+        });
+    }, CHECK_HOST_POLL_DELAYS[attempt] || 3000);
+  });
 }
 
 // ---- Globalping 国内运营商定位 ----
