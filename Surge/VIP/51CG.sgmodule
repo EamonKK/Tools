@@ -1,0 +1,13 @@
+#!name=51cg
+#!desc=51cg
+
+[URL Rewrite]
+^https?:\/\/[^\/]+\/upload_01\/ads\/ - reject
+^https?:\/\/[^\/]*jqgjyipzs\.com\/ - reject
+^https?:\/\/[^\/]+\/lottery\/worldcup\/ - reject
+
+[Script]
+51cg = type=http-response, pattern="^https?:\/\/bpi[45]\.[a-z0-9-]+\.[a-z]{2,}\/api\.php\/api\/", script-path=https://raw.githubusercontent.com/89996462/Quantumult-X/main/ghs/51cg.js, requires-body=true, max-size=-1, timeout=60
+
+[MITM]
+hostname = %APPEND% p11.gmjiphps.cc, *.gmjiphps.cc, bpi4.azmnhrfc.com, bpi5.azmzyrwn.cc, *.azmnhrfc.com, *.azmzyrwn.cc, pic.myedua.cn, *.myedua.cn, pic.fkqwky.cn, pic.sfbjdu.cn, hlsapp.fkqwky.cn, hlsapp.sfbjdu.cn, raw.githubusercontent.com
