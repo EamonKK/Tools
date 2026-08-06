@@ -7,14 +7,10 @@ DOMAIN-SUFFIX,sylvanas.qzz.io,DIRECT
 DOMAIN-SUFFIX,betray.dpdns.org,DIRECT
 DOMAIN-SUFFIX,sylvanas.dpdns.org,DIRECT
 DOMAIN-SUFFIX,sylvanas.qzz.io,DIRECT
-#新西瓜
-DOMAIN,www.yuntv.de,DIRECT
-DOMAIN,xigua.yuntv.de,DIRECT
-DOMAIN,xg.yuntv.de,DIRECT
-DOMAIN,cloudcube.wuxi.cn,DIRECT
-DOMAIN-SUFFIX,ctyunxs.cn,DIRECT
+#GUAI
+DOMAIN-SUFFIX,764374236.xyz,DIRECT
 #小姨子
-DOMAIN,gy.emby.yun,DIRECT
+DOMAIN-SUFFIX,emby.yun,DIRECT
 #Emos
 DOMAIN,emos.200038.xyz,DIRECT
 #MSTY
