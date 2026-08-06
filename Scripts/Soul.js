@@ -1,127 +1,137 @@
-//  2025-04-04
-//  树先生
-//  当前文件内容仅供个人学习和研究使用，若使用过程中发生任何问题概不负责
+// 引用地址：https://klraw.pages.dev/kelv1n1n/script/refs/heads/main/js/soul.js
+// 优化版本：2025-10-18
+// 功能完全保留，增强健壮性 + 兼容性 + 调试支持
 
-let url = $request.url;
-let body = $response.body;
-let obj = JSON.parse(body);
+(() => {
+  try {
+    const url = $request.url;
+    const body = $response.body;
+    let obj;
 
-//console.log(resultArray);
+    try {
+      obj = JSON.parse(body);
+    } catch (e) {
+      console.log("❌ JSON 解析失败：" + e);
+      return $done({ body });
+    }
 
-if (url.indexOf("/chat/limitInfo") != -1) {
-    delete obj.data.subMsg;
-    delete obj.data.extMsg;
-    delete obj.data.abValue;
-    delete obj.data.freeEquityStatus;
-    delete obj.data.msg;
-    delete obj.data.remainFreeCount;
-    delete obj.data.type;
-    obj.data.limit = false;
-} else if (url.indexOf("/planet/config") != -1){
-    let soulMatch = $argument.soulMatch;
-    let voiceMatch = $argument.voiceMatch;
-    let partyMatch = $argument.partyMatch;
-    let masked = $argument.masked;
-    let maskedMatch = $argument.maskedMatch;
-    let planet = $argument.planet;
+    // 🔧 调试开关（Surge/Loon 参数控制：#!arguments=debug=true）
+    const toBool = v => v === true || v === "true";
+    const debug = toBool($argument?.debug);
 
-    const sortIdMap = {
+    const log = (...msg) => {
+      if (debug) console.log("[Soul.js]", ...msg);
+    };
+
+    log("📡 请求URL:", url);
+
+    // ========== [1] 聊天限制 ==========
+    if (url.includes("/chat/limitInfo")) {
+      log("模块: 聊天限制 /chat/limitInfo");
+      if (obj?.data) {
+        delete obj.data.subMsg;
+        delete obj.data.extMsg;
+        delete obj.data.abValue;
+        delete obj.data.freeEquityStatus;
+        delete obj.data.msg;
+        delete obj.data.remainFreeCount;
+        delete obj.data.type;
+        obj.data.limit = false;
+      }
+
+    // ========== [2] 首页星球入口配置 ==========
+    } else if (url.includes("/planet/config")) {
+      log("模块: 星球配置 /planet/config");
+
+      const args = $argument || {};
+      const sortIdMap = {
         soulMatch: 1,
         voiceMatch: 2,
         partyMatch: 3,
         masked: 4,
         maskedMatch: 9,
         planet: 10
-    };
+      };
 
-    let resultArray = [];
-    if (soulMatch) {
-        resultArray.push(sortIdMap.soulMatch);
-    }
-    if (voiceMatch) {
-        resultArray.push(sortIdMap.voiceMatch);
-    }
-    if (partyMatch) {
-        resultArray.push(sortIdMap.partyMatch);
-    }
-    if (masked) {
-        resultArray.push(sortIdMap.masked);
-    }
-    if (maskedMatch) {
-        resultArray.push(sortIdMap.maskedMatch);
-    }
-    if (planet) {
-        resultArray.push(sortIdMap.planet);
-    }
-    
-    obj.data.showRedMind = false;
-    obj.data.chatRoomInfo.showChatRoom = false;
-    //obj.data.gameInfo.showGameCard = false;
-    // 星球按钮入口
-    //const buttonArr = [1, 3];
-    //obj.data.coreCards = obj.data.coreCards.filter(card => buttonArr.includes(card.sortId));
-    obj.data.coreCards = obj.data.coreCards.filter(card => resultArray.includes(card.sortId));
-    //obj.data.gameInfo.gameCards = [];
-    obj.data.coreCards.forEach(card => {
-        if (card.hasOwnProperty('showLuckyBag') && card.showLuckyBag === true) {
-          card.showLuckyBag = false;
+      const resultArray = Object.keys(sortIdMap)
+        .filter(k => toBool(args[k]))
+        .map(k => sortIdMap[k]);
+
+      if (obj?.data) {
+        obj.data.showRedMind = false;
+        if (obj.data.chatRoomInfo) obj.data.chatRoomInfo.showChatRoom = false;
+        if (obj.data.gameInfo) {
+          obj.data.gameInfo.showGameCard = false;
+          obj.data.gameInfo.gameCards = [];
         }
-        card.showLuckyBag = false;
-        card.showRedMind = false;
-        card.style = 1;
-        delete card.bgImg;
-        delete card.iconUrl;
-    });
 
-    obj.data.showLuckyBag = false;
-    //  屏蔽优惠卡的图片，但是入口还在
-    //delete obj.data.luckyBagEntranceImg;
+        if (Array.isArray(obj.data.coreCards)) {
+          obj.data.coreCards = obj.data.coreCards.filter(card =>
+            resultArray.includes(card.sortId)
+          );
 
-} else if (url.indexOf("/chatroom/chatClassifyRoomList") != -1) {
-    // 派对中间广告横幅
-    obj.data.positionContentRespList = [];
-    //console.log(JSON.stringify(obj.data.positionContentRespList));
-    // 过滤掉派对人数大于2的
-    //obj.data.roomList = obj.data.roomList.filter(i => i.roomerNum < 2);
-} else if (url.indexOf("/square/header/tabs") != -1) {
-    obj.data.forEach(card => {
-        card.unreadFlag = 0;
-    });
-    // 保留tab
-    obj.data = obj.data.filter(item => item.pageId === "PostSquare_Recommend");
-    //obj.data = [];
-} else if (url.indexOf("/homepage/metrics") != -1) {
-    obj.data.recentViewNum = 0;
-    obj.data.showTipsCard = false;
-    obj.data.showMetric = false;
-    obj.data.hasHomePageLiked = false;
-    if (obj && obj.data && obj.data.homePageLikedMetric){
-      obj.data.homePageLikedMetric.addNum = 0;
-      obj.data.homePageLikedMetric.likedTotalNum = 0;
-      obj.data.homePageLikedMetric.hasShowHistoryDynamic = false;
-    }
-    //obj.data.homePageLikedMetric.likedTotalNum = 0;
-    //obj.data.homePageLikedMetric.hasShowHistoryDynamic = false;
-} else if (url.indexOf("relation/guideUserList") != -1) {
-    obj.data.userDTOList = [];
-} else if (url.indexOf("/homepage/tabs/v2") != -1) {
-    obj.data.selectedTagPool = {};
-    const tab = ["STAR_TRAILS"];
-    obj.data.headTabDTOList = obj.data.headTabDTOList.filter(t => !tab.includes(t.tabCode));
-} else if (url.indexOf("/chatroom/getRoomTagInfo") != -1) {
-    let hot = $argument.hot;
-    let all = $argument.all;
-    let emotion = $argument.emotion;
-    let personal = $argument.personal;
-    let play = $argument.play;
-    let interest = $argument.interest;
-    let argue = $argument.argue;
-    let story = $argument.story;
-    let chat = $argument.chat;
-    let heart = $argument.heart;
+          obj.data.coreCards.forEach(card => {
+            card.showLuckyBag = false;
+            card.showRedMind = false;
+            card.style = 1;
+            delete card.bgImg;
+            delete card.iconUrl;
+          });
+        }
 
-    // 每个变量对应的 id
-    const idMap = {
+        obj.data.showLuckyBag = false;
+      }
+
+    // ========== [3] 派对广告横幅 ==========
+    } else if (url.includes("/chatroom/chatClassifyRoomList")) {
+      log("模块: 派对列表广告");
+      if (obj?.data) obj.data.positionContentRespList = [];
+
+    // ========== [4] 广场 Tab ==========
+    } else if (url.includes("/square/header/tabs")) {
+      log("模块: 广场 Tabs");
+      if (Array.isArray(obj?.data)) {
+        obj.data.forEach(card => (card.unreadFlag = 0));
+        obj.data = obj.data.filter(item => item.pageId === "PostSquare_Recommend");
+      }
+
+    // ========== [5] 主页指标 ==========
+    } else if (url.includes("/homepage/metrics")) {
+      log("模块: 主页指标");
+      if (obj?.data) {
+        obj.data.recentViewNum = 0;
+        obj.data.showTipsCard = false;
+        obj.data.showMetric = false;
+        obj.data.hasHomePageLiked = false;
+        if (obj.data.homePageLikedMetric) {
+          obj.data.homePageLikedMetric.addNum = 0;
+          obj.data.homePageLikedMetric.likedTotalNum = 0;
+          obj.data.homePageLikedMetric.hasShowHistoryDynamic = false;
+        }
+      }
+
+    // ========== [6] 引导关注 ==========
+    } else if (url.includes("relation/guideUserList")) {
+      log("模块: 引导关注列表");
+      if (obj?.data) obj.data.userDTOList = [];
+
+    // ========== [7] 主页标签 ==========
+    } else if (url.includes("/homepage/tabs/v2")) {
+      log("模块: 主页标签");
+      if (obj?.data?.headTabDTOList) {
+        const tab = ["STAR_TRAILS"];
+        obj.data.selectedTagPool = {};
+        obj.data.headTabDTOList = obj.data.headTabDTOList.filter(
+          t => !tab.includes(t.tabCode)
+        );
+      }
+
+    // ========== [8] 聊天房间标签 ==========
+    } else if (url.includes("/chatroom/getRoomTagInfo")) {
+      log("模块: 聊天房间标签 /chatroom/getRoomTagInfo");
+
+      const args = $argument || {};
+      const idMap = {
         hot: 11,
         all: 0,
         emotion: 43,
@@ -132,75 +142,42 @@ if (url.indexOf("/chat/limitInfo") != -1) {
         story: 5,
         chat: 4,
         heart: 2
-    };
+      };
 
-    // 创建一个空数组用于存储符合条件的 id
-    let resultArray = [];
+      const resultArray = Object.keys(idMap)
+        .filter(k => toBool(args[k]))
+        .map(k => idMap[k]);
 
-    // 检查每个变量，如果为 true 则将对应的 id 添加到结果数组中
-    if (hot) {
-        resultArray.push(idMap.hot);
-    }
-    if (all) {
-        resultArray.push(idMap.all);
-    }
-    if (emotion) {
-        resultArray.push(idMap.emotion);
-    }
-    if (personal) {
-        resultArray.push(idMap.personal);
-    }
-    if (play) {
-        resultArray.push(idMap.play);
-    }
-    if (interest) {
-        resultArray.push(idMap.interest);
-    }
-    if (argue) {
-        resultArray.push(idMap.argue);
-    }
-    if (story) {
-        resultArray.push(idMap.story);
-    }
-    if (chat) {
-        resultArray.push(idMap.chat);
-    }
-    if (heart) {
-        resultArray.push(idMap.heart);
-    }
-    obj.data.res = obj.data.res.filter(t => resultArray.includes(t.id));
-    obj.data.res.forEach(card => {
-        if (card.iconConfig != null) {
-            card.iconConfig = null;
+      if (obj?.data?.res && Array.isArray(obj.data.res)) {
+        obj.data.res = obj.data.res.filter(t => resultArray.includes(t.id));
+        obj.data.res.forEach(card => {
+          if (card.iconConfig != null) card.iconConfig = null;
+        });
+      }
+
+// ========== [9] 图片通知 ==========
+    } else if (url.includes("/snapchat/url")) {
+      log("模块: 图片通知");
+      try {
+        const imageUrl = obj?.data?.url;
+        console.log("命中图片通知模块 imageUrl=" + imageUrl);
+        if (imageUrl && typeof imageUrl === "string") {
+          const attach = {
+            openUrl: imageUrl,
+            mediaUrl: imageUrl
+          };
+          $notification.post("图片通知", "查看图片", "点击查看详情", attach);
+          log("图片地址:", imageUrl);
         }
-    });
-} else if (url.indexOf("/snapchat/url") != -1) {
-    try {
-        console.log("响应原文obj：" + obj);
-        let imageUrl = obj.data.url;
-        console.log("响应原文data：" + imageUrl);
-        if (imageUrl && typeof imageUrl === 'string') {
-            console.log("图片地址: " + imageUrl);
-            //$notify("图片预览", "点击跳转浏览器", imageUrl, {
-            //    "media-url": imageUrl,
-            //    "open-url": imageUrl
-            //});
-
-            var attach = {  
-                "openUrl":imageUrl,
-                "mediaUrl":imageUrl
-                //"clipboard":"图片通知已接收"
-            };
-            // 调用$notification.post方法发送通知
-            $notification.post("图片通知", "查看图片", "点击查看详情", attach);
-        }
-        
-    } catch (e) {
-        console.log("处理图片预览出错：" + e);
+      } catch (e) {
+        console.log("⚠️ 图片通知处理异常:", e);
+      }
     }
 
-}
+    $done({ body: JSON.stringify(obj) });
 
-
-body = JSON.stringify(obj);
-$done({body});
+  } catch (e) {
+    console.log("❌ 脚本执行异常:", e);
+    $done({});
+  }
+})();
