@@ -3,6 +3,12 @@
 #!author=ZenmoFeiShi, RuCu6, 可莉, kelv1n1n, wish
 #!icon=https://raw.githubusercontent.com/mist-whisper/Icon/master/App_icon/120px/Soul.png
 #!system=ios
+#!arguments=PROXY:DIRECT
+#!arguments-desc=PROXY:选择分流策略组，默认DIRECT。
+
+[Rule]
+IP-CIDR, 8.210.3.170/32, {{{PROXY}}}, no-resolve
+IP-CIDR, 47.75.72.47/32, {{{PROXY}}}, no-resolve
 
 [Map Local]
 # 广告下发
@@ -40,6 +46,7 @@
 
 个人主页tab = type=http-response, pattern=^https:\/\/post\.soulapp\.cn\/homepage\/tabs\/v2, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Soul.js, requires-body=true
 
+{{{阅后即焚}}} = type=http-response, pattern=^https:\/\/api-chat\.soulapp\.cn\/snapchat\/url, script-path=https://raw.githubusercontent.com/EamonKK/Tools/refs/heads/main/Scripts/Soul.js,requires-body=true,max-size=-1,binary-body-mode=1
 
 [MITM]
 hostname = %APPEND% ssp.soulapp.cn, increase-openapi.soulapp.cn, data-collector.soulapp.cn, post.soulapp.cn, api-account.soulapp.cn, api-a.soulapp.cn, gateway-mobile-gray.soulapp.cn, api-user.soulapp.cn, chat-live.soulapp.cn, api-chat.soulapp.cn, 47.110.187.87
