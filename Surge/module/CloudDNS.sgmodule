@@ -3,26 +3,14 @@
 #!version=1.0.0
 
 # DNS over HTTPS (DoH)
-# https://ddhjiadji6959dadaa.daacc.org/dns-query
+# h8.8.8.8
 [Host]
-# 7770008.xyz
-7770008.xyz = server:https//dns.google/dns-query
-*.7770008.xyz = server:https//dns.google/dns-query
-# 7770006.xyz
-7770006.xyz = server:https//dns.google/dns-query
-*.7770006.xyz = server:https//dns.google/dns-query
-# 777078.xyz
-777078.xyz = server:https//dns.google/dns-query
-*.777078.xyz = server:https//dns.google/dns-query
-# lxyun.xyz
-lxyun.xyz = server:https//dns.google/dns-query
-*.lxyun.xyz = server:https//dns.google/dns-query
 # betray.dpdns.org
-betray.dpdns.org = server:https//dns.google/dns-query
-*.betray.dpdns.org = server:https//dns.google/dns-query
+betray.dpdns.org = server:8.8.8.8
+*.betray.dpdns.org = server:8.8.8.8
 # sylvanas.qzz.io
-sylvanas.qzz.io = server:https//dns.google/dns-query
-*.sylvanas.qzz.io = server:https//dns.google/dns-query
+sylvanas.qzz.io = server:8.8.8.8
+*.sylvanas.qzz.io = server:8.8.8.8
 # sylvanas.dpdns.org
-sylvanas.dpdns.org = server:https//dns.google/dns-query
-*.sylvanas.dpdns.org = server:https//dns.google/dns-query
+sylvanas.dpdns.org = server:8.8.8.8
+*.sylvanas.dpdns.org = server:8.8.8.8
