@@ -3,14 +3,14 @@
 #!version=1.0.0
 
 # DNS over HTTPS (DoH)
-# h8.8.8.8
+# https://dns.google/dns-query
 [Host]
 # betray.dpdns.org
-betray.dpdns.org = server:8.8.8.8
-*.betray.dpdns.org = server:8.8.8.8
+betray.dpdns.org = server:https://dns.google/dns-query
+*.betray.dpdns.org = server:https://dns.google/dns-query
 # sylvanas.qzz.io
-sylvanas.qzz.io = server:8.8.8.8
-*.sylvanas.qzz.io = server:8.8.8.8
+sylvanas.qzz.io = server:https://dns.google/dns-query
+*.sylvanas.qzz.io = server:https://dns.google/dns-query
 # sylvanas.dpdns.org
-sylvanas.dpdns.org = server:8.8.8.8
-*.sylvanas.dpdns.org = server:8.8.8.8
+sylvanas.dpdns.org = server:https://dns.google/dns-query
+*.sylvanas.dpdns.org = server:https://dns.google/dns-query
