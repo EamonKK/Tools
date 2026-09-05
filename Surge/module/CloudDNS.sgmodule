@@ -6,23 +6,23 @@
 # https://ddhjiadji6959dadaa.daacc.org/dns-query
 [Host]
 # 7770008.xyz
-7770008.xyz = server:https//cloudflare-dns.com/dns-query
-*.7770008.xyz = server:https//cloudflare-dns.com/dns-query
+7770008.xyz = server:https//dns.google/dns-query
+*.7770008.xyz = server:https//dns.google/dns-query
 # 7770006.xyz
-7770006.xyz = server:https//cloudflare-dns.com/dns-query
-*.7770006.xyz = server:https//cloudflare-dns.com/dns-query
+7770006.xyz = server:https//dns.google/dns-query
+*.7770006.xyz = server:https//dns.google/dns-query
 # 777078.xyz
-777078.xyz = server:https//cloudflare-dns.com/dns-query
-*.777078.xyz = server:https//cloudflare-dns.com/dns-query
+777078.xyz = server:https//dns.google/dns-query
+*.777078.xyz = server:https//dns.google/dns-query
 # lxyun.xyz
-lxyun.xyz = server:https//cloudflare-dns.com/dns-query
-*.lxyun.xyz = server:https//cloudflare-dns.com/dns-query
+lxyun.xyz = server:https//dns.google/dns-query
+*.lxyun.xyz = server:https//dns.google/dns-query
 # betray.dpdns.org
-betray.dpdns.org = server:https//cloudflare-dns.com/dns-query
-*.betray.dpdns.org = server:https//cloudflare-dns.com/dns-query
+betray.dpdns.org = server:https//dns.google/dns-query
+*.betray.dpdns.org = server:https//dns.google/dns-query
 # sylvanas.qzz.io
-sylvanas.qzz.io = server:https//cloudflare-dns.com/dns-query
-*.sylvanas.qzz.io = server:https//cloudflare-dns.com/dns-query
+sylvanas.qzz.io = server:https//dns.google/dns-query
+*.sylvanas.qzz.io = server:https//dns.google/dns-query
 # sylvanas.dpdns.org
-sylvanas.dpdns.org = server:https//cloudflare-dns.com/dns-query
-*.sylvanas.dpdns.org = server:https//cloudflare-dns.com/dns-query
+sylvanas.dpdns.org = server:https//dns.google/dns-query
+*.sylvanas.dpdns.org = server:https//dns.google/dns-query
